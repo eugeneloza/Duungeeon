@@ -10,7 +10,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="BoxMaze"/>
+      <Title Value="duungeeon"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -20,7 +20,7 @@
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="BoxMaze"/>
+            <Filename Value="duungeeon"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -54,7 +54,7 @@
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="BoxMaze"/>
+            <Filename Value="duungeeon"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -93,7 +93,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="BoxMaze.pas"/>
+        <Filename Value="duungeeon.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -111,7 +111,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="BoxMaze"/>
+      <Filename Value="duungeeon"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

@@ -1,4 +1,4 @@
-program BoxMaze;
+program duungeeon;
 
 uses
   SysUtils,
