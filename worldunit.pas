@@ -53,8 +53,8 @@ var
 
   ix, iy: integer;
 begin
-  Box := LoadBlenderX3D(ApplicationData('Box.x3d'));
-  Pass := LoadBlenderX3D(ApplicationData('Pass.x3d'));
+  Box := LoadBlenderX3D(ApplicationData('tiles/Box.x3d'));
+  Pass := LoadBlenderX3D(ApplicationData('tiles/Pass.x3d'));
   Rnd := TCastleRandom.Create;
 
   for ix := 0 to MapSizeX-1 do
@@ -99,6 +99,7 @@ var
   GenerationNode: TX3DRootNode;
   Nav: TNavigationInfoNode;
   Viewport: TViewpointNode;
+  Background: TBackgroundNode;
 begin
   South := Vector3(1,0,0);
   North := Vector3(-1,0,0);
@@ -121,19 +122,26 @@ begin
   Viewport.FieldOfView := 1.1;
   GenerationNode.FdChildren.Add(Viewport);
 
+  Background := TBackgroundNode.Create;
+  Background.FdBackUrl.Items.Add(ApplicationData('skybox/bkg2_back6_CC0_by_StumpyStrust.tga'));
+  Background.FdBottomUrl.Items.Add(ApplicationData('skybox/bkg2_bottom4_CC0_by_StumpyStrust.tga'));
+  Background.FdFrontUrl.Items.Add(ApplicationData('skybox/bkg2_front5_CC0_by_StumpyStrust.tga'));
+  Background.FdLeftUrl.Items.Add(ApplicationData('skybox/bkg2_left2_CC0_by_StumpyStrust.tga'));
+  Background.FdRightUrl.Items.Add(ApplicationData('skybox/bkg2_right1_CC0_by_StumpyStrust.tga'));
+  Background.FdTopUrl.Items.Add(ApplicationData('skybox/bkg2_top3_CC0_by_StumpyStrust.tga'));
+
+  GenerationNode.FdChildren.Add(Background);
+
   Scene.Load(GenerationNode, true);
 
   Camera := TWalkCamera.Create(Window);
   Camera.PreferredHeight := 1 * ScaleY;
-  Camera.Position := Vector3(Player.X*2*Scale,
-    Camera.PreferredHeight-1*ScaleY, Player.Y*2*Scale);
+  Camera.Position := Vector3(Player.X * 2 * Scale,
+    Camera.PreferredHeight - 1 * ScaleY, Player.Y * 2 * Scale);
   Player.Dir := dSouth;
   Camera.Direction := GetDirection(Player.Dir);
   Camera.FallingEffect := false;
   Camera.Input := [];
-{  Camera.MoveSpeed := 10;
-  Camera.MouseLookHorizontalSensitivity := 1;
-  Camera.MouseLook := true;}
 
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
