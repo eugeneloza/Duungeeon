@@ -21,7 +21,7 @@ program Duungeeon;
 
 uses
   SysUtils, CastleWindow, CastleLog,
-  CastleKeysMouse, WorldUnit, PlayerUnit;
+  CastleKeysMouse, WorldUnit, PlayerUnit, windowunit;
 
 procedure doPress(Container: TUIContainer; const Event: TInputPressRelease);
   procedure Move(Fwd: shortint);
@@ -40,7 +40,7 @@ procedure doPress(Container: TUIContainer; const Event: TInputPressRelease);
     if Map[Player.X + dx, Player.Y + dy] = 0 then begin
       Player.X += dx;
       Player.Y += dy;
-      Camera.Position := Camera.Position + Fwd * Camera.Direction * Scale * 2;
+      Player.Camera.Position := Player.Camera.Position + Fwd * Player.Camera.Direction * Scale * 2;
     end;
   end;
   procedure Rotate(CCW: boolean);
@@ -63,7 +63,7 @@ procedure doPress(Container: TUIContainer; const Event: TInputPressRelease);
         dSouth: Player.Dir := dWest;
       end;
     end;
-    Camera.Direction := GetDirection(Player.Dir);
+    Player.Camera.Direction := Player.GetDirection(Player.Dir);
   end;
 begin
   if Event.EventType = itKey then begin
@@ -75,8 +75,6 @@ begin
     end;
   end;
 end;
-
-
 
 begin
   InitializeLog('0', nil, ltTime);

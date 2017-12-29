@@ -26,23 +26,21 @@ interface
 uses
   SysUtils, MyLoad3D, CastleWindow, CastleSceneCore, CastleScene,
   CastleLog, CastleFilesUtils, CastleCameras,
-  X3DLoad, X3DNodes, CastleRandom, CastleVectors,
-
-  PlayerUnit;
+  X3DLoad, X3DNodes, CastleRandom, CastleVectors;
 
 const
   MapSizeX = 30;
   MapSizeY = 30;
-  Scale = 10;
-  ScaleY = 5;
 
 var
-  Window: TCastleWindow;
   Scene: TCastleScene;
   Map: array [0..MapSizeX-1, 0..MapSizeY-1] of byte;
 
 procedure PrepareScene;
 implementation
+
+uses
+  WindowUnit, PlayerUnit;
 
 procedure GenerateMaze(var Root: TX3DRootNode);
 var
@@ -72,8 +70,6 @@ begin
   end;
 
   //make space for player start location
-  Player.X := MapSizeX div 2;
-  Player.Y := MapSizeY div 2;
   Map[Player.X, Player.Y] := 0;
 
   {build the scene}
@@ -101,10 +97,7 @@ var
   Viewport: TViewpointNode;
   Background: TBackgroundNode;
 begin
-  South := Vector3(1,0,0);
-  North := Vector3(-1,0,0);
-  East := Vector3(0,0,-1);
-  West := Vector3(0,0,1);
+  Player := TPlayer.Create;
 
   Scene := TCastleScene.Create(Application);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
@@ -134,18 +127,9 @@ begin
 
   Scene.Load(GenerationNode, true);
 
-  Camera := TWalkCamera.Create(Window);
-  Camera.PreferredHeight := 1 * ScaleY;
-  Camera.Position := Vector3(Player.X * 2 * Scale,
-    Camera.PreferredHeight - 1 * ScaleY, Player.Y * 2 * Scale);
-  Player.Dir := dSouth;
-  Camera.Direction := GetDirection(Player.Dir);
-  Camera.FallingEffect := false;
-  Camera.Input := [];
-
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
-  Window.SceneManager.Camera := Camera;
+  Window.SceneManager.Camera := Player.Camera;
 end;
 
 end.
