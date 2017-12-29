@@ -115,6 +115,7 @@
       <Unit4>
         <Filename Value="playerunit.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="PlayerUnit"/>
       </Unit4>
     </Units>
   </ProjectOptions>

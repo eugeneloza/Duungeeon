@@ -24,9 +24,33 @@ unit PlayerUnit;
 interface
 
 uses
-  Classes, SysUtils;
+  CastleVectors, CastleCameras;
 
+type TDir = (dSouth, dWest, dNorth, dEast);
+
+type TPlayer = record
+  Dir: TDir;
+  x, y: integer;
+end;
+
+var
+  South, West, North, East: TVector3;
+  Camera: TWalkCamera;
+  Player: TPlayer;
+
+
+function GetDirection(a: TDir): TVector3;
 implementation
+
+function GetDirection(a: TDir): TVector3;
+begin
+  case a of
+    dSouth: Result := South;
+    dEast: Result := East;
+    dWest: Result := West;
+    dNorth: Result := North;
+  end;
+end;
 
 end.
 
