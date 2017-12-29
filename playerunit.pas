@@ -63,10 +63,6 @@ end;
 
 constructor TPlayer.Create;
 begin
-  South := Vector3(1,0,0);
-  North := Vector3(-1,0,0);
-  East := Vector3(0,0,-1);
-  West := Vector3(0,0,1);
 
   Dir := dSouth;
   X := 30 div 2;
@@ -85,6 +81,13 @@ destructor TPlayer.Destroy;
 begin
   inherited;
 end;
+
+initialization
+  South := Vector3(1,0,0);
+  North := Vector3(-1,0,0);
+  East := Vector3(0,0,-1);
+  West := Vector3(0,0,1);
+
 
 finalization
   Player.Free;
