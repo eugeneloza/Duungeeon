@@ -91,7 +91,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="6">
       <Unit0>
         <Filename Value="duungeeon.pas"/>
         <IsPartOfProject Value="True"/>
@@ -117,6 +117,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="PlayerUnit"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="windowunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="WindowUnit"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
