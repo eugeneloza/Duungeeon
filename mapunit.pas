@@ -34,16 +34,23 @@ type
   TLocation = (LGraveyard);
 
 type
-  TMap = array [0..MapSizeX - 1, 0..MapSizeY - 1] of byte;
+  TMapItem = integer;
+
+type
+  TMap = array [0..MapSizeX - 1, 0..MapSizeY - 1] of TMapItem;
 
 type
   TLocationGenerator = class(TObject)
-  strict private
-    procedure MakeGraveyardLocation;
-  strict private
-    GM: TMap;
+  strict private {map generation algorithms}
+
+    procedure MakeRandomMap;
+  strict private {map generation tools}
+    BlockMap, FloodMap: TMap;
     CurrentLocation: TLocation;
     Rnd: TCastleRandom;
+    procedure ClearFloodFill;
+    function SafeFloodMap(ax, ay: integer): TMapItem;
+    procedure FloodFill;
     procedure MakeOuterWalls;
   public
     EntranceX, EntranceY: integer;
@@ -70,6 +77,14 @@ uses
   MyLoad3D, CastleFilesUtils, CastleLog,
   CastleColors, //temp
   WindowUnit;
+
+function isPassable(ax, ay: integer): boolean;
+begin
+  if Map[ax, ay] = 0 then
+    Result := true
+  else
+    Result := false;
+end;
 
 type
   TTransformNodeHelper = class helper for TTransformNode
@@ -105,7 +120,7 @@ begin
     for iy := 0 to MapSizeY-1 do begin
       Translation := TTransformNode.Create;
       Translation.AddContent(Tiles[Map[ix, iy]]);
-      Translation.Translation := Vector3(ix*2*Scale, 0, iy*2*Scale);
+      Translation.Translation := Vector3(ix * 2 * Scale, 0, iy * 2 * Scale);
       Translation.Scale := Vector3(Scale, ScaleY, Scale);
       Result.FdChildren.Add(Translation);
     end;
@@ -131,9 +146,9 @@ begin
   Result := TRGBAlphaImage.Create;
   Result.SetSize(MapSizeX*8, MapSizeY*8);
   Result.Clear(Vector4Byte(0, 0, 0, 0));
-  for ix := 0 to MapSizeX-1 do
-    for iy := 0 to MapSizeY-1 do begin
-      if Map[ix, iy] = 1 then Result.FillEllipse(ix*8+4, iy*8+4, 5, 5, White);
+  for ix := 0 to MapSizeX - 1 do
+    for iy := 0 to MapSizeY - 1 do begin
+      if Map[ix, iy] = 1 then Result.FillEllipse(ix * 8 + 4, iy * 8 + 4, 5, 5, White);
     end;
 end;
 
@@ -154,12 +169,53 @@ begin
 
 end;
 
-procedure TLocationGenerator.MakeGraveyardLocation;
+procedure TLocationGenerator.ClearFloodFill;
 var
   ix, iy: integer;
 begin
-  for ix := 0 to MapSizeX-1 do
-    for iy := 0 to MapSizeY-1 do
+  for ix := 0 to MapSizeX - 1 do
+    for iy := 0 to MapSizeY - 1 do
+      FloodMap[ix, iy] := 0;
+  FloodMap[EntranceX, EntranceY] := 1;
+end;
+
+function TLocationGenerator.SafeFloodMap(ax, ay: integer): TMapItem;
+begin
+  if (ax >= 0) and (ay >= 0) and (ax < MapSizeX) and (ay < MapSizeY) then
+    Result := FloodMap[ax, ay]
+  else
+    Result := 0;
+end;
+
+procedure TLocationGenerator.FloodFill;
+var
+  ix, iy: integer;
+  Count: integer;
+  Pass: integer;
+begin
+  Pass := 1; {in case we've just cleared FloodMap it'll build a good distance map}
+  repeat
+    inc(Pass);
+    Count := 0;
+    for ix := 0 to MapSizeX - 1 do
+      for iy := 0 to MapSizeY - 1 do
+        if (isPassable(ix, iy)) and (FloodMap[ix, iy] = 0) then begin
+          if (SafeFloodMap(ix - 1, iy) > 0) or (SafeFloodMap(ix + 1, iy) > 0) or
+            (SafeFloodMap(ix, iy - 1) > 0) or (SafeFloodMap(ix, iy + 1) > 0) then
+            FloodMap[ix, iy] := Pass;
+          inc(Count);
+        end;
+  until Count = 0;
+end;
+
+procedure TLocationGenerator.MakeRandomMap;
+var
+  ix, iy: integer;
+begin
+  MakeOuterWalls;
+
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do
       Map[ix, iy] := Rnd.Random(2);
 end;
 
@@ -167,11 +223,10 @@ procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
 begin
   CurrentLocation := aLocation;
 
+  ClearFloodFill;
   case CurrentLocation of
-    LGraveyard: MakeGraveyardLocation;
+    LGraveyard: MakeRandomMap;
   end;
-
-  MakeOuterWalls;
 
   //make space for player start location
   Map[EntranceX, EntranceY] := 0;
