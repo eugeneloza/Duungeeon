@@ -36,7 +36,7 @@ type
 
 type
   TPlayer = class(TObject)
-  private
+  strict private
     procedure ResetDirection;
   public
     Last, Next: TCoord;
@@ -45,6 +45,8 @@ type
     procedure Move(Fwd: shortint);
     procedure RotateClockwise;
     procedure RotateCounterclockwise;
+
+    procedure Manage;
 
     constructor Create;
     destructor Destroy; override;
@@ -60,6 +62,13 @@ implementation
 uses
   WindowUnit, WorldUnit;
 
+procedure TPlayer.Manage;
+begin
+  ResetDirection;
+  Camera.Position := Vector3(Last.X * 2 * Scale,
+    Camera.PreferredHeight - 1 * ScaleY, Last.Y * 2 * Scale);
+  Camera.Direction := Face[Last.Dir];
+end;
 
 procedure TPlayer.Move(Fwd: shortint);
 var dx, dy: shortint;
@@ -74,11 +83,9 @@ begin
   end;
   dx := dx * Fwd;
   dy := dy * Fwd;
-  if Map[Player.Last.X + dx, Player.Last.Y + dy] = 0 then begin
-    Player.Next.X := Player.Last.X + dx;
-    Player.Next.Y := Player.Last.Y + dy;
-    Player.Camera.Position := Player.Camera.Position + Fwd * Player.Camera.Direction * Scale * 2;
-    ResetDirection;
+  if Map[Last.X + dx, Last.Y + dy] = 0 then begin
+    Next.X := Last.X + dx;
+    Next.Y := Last.Y + dy;
   end;
 end;
 
@@ -91,8 +98,6 @@ begin
     West: Next.Dir := North;
     South: Next.Dir := West;
   end;
-  ResetDirection;
-  Player.Camera.Direction := Face[Player.Last.Dir];
 end;
 
 procedure TPlayer.RotateCounterclockwise;
@@ -103,8 +108,6 @@ begin
     West: Next.Dir := South;
     South: Next.Dir := East;
   end;
-  ResetDirection;
-  Player.Camera.Direction := Face[Player.Last.Dir];
 end;
 
 procedure TPlayer.ResetDirection;
@@ -124,9 +127,6 @@ begin
 
   Camera := TWalkCamera.Create(Window);
   Camera.PreferredHeight := 1 * ScaleY;
-  Camera.Position := Vector3(Last.X * 2 * Scale,
-    Camera.PreferredHeight - 1 * ScaleY, Last.Y * 2 * Scale);
-  Camera.Direction := Face[Last.Dir];
   Camera.FallingEffect := false;
   Camera.Input := [];
 end;

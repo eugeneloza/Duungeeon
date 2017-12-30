@@ -23,6 +23,11 @@ uses
   SysUtils, CastleWindow, CastleLog,
   CastleKeysMouse, WorldUnit, PlayerUnit, windowunit;
 
+procedure doManage(Container: TUIContainer);
+begin
+  Player.Manage;
+end;
+
 procedure doPress(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.EventType = itKey then begin
@@ -40,6 +45,7 @@ begin
   Window := TCastleWindow.Create(Application);
   Window.DoubleBuffer := True;
   Window.OnPress := @doPress;
+  Window.OnBeforeRender := @doManage;
   Application.MainWindow := Window;
   PrepareScene;
   Window.OpenAndRun;
