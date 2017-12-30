@@ -36,6 +36,8 @@ type
 
 type
   TPlayer = class(TObject)
+  private
+    procedure ResetDirection;
   public
     Last, Next: TCoord;
     Camera: TWalkCamera;
@@ -76,8 +78,7 @@ begin
     Player.Next.X := Player.Last.X + dx;
     Player.Next.Y := Player.Last.Y + dy;
     Player.Camera.Position := Player.Camera.Position + Fwd * Player.Camera.Direction * Scale * 2;
-    Player.Last.X := Player.Next.X;
-    Player.Last.Y := Player.Next.Y;
+    ResetDirection;
   end;
 end;
 
@@ -90,7 +91,7 @@ begin
     West: Next.Dir := North;
     South: Next.Dir := West;
   end;
-  Last.Dir := Next.Dir;
+  ResetDirection;
   Player.Camera.Direction := Face[Player.Last.Dir];
 end;
 
@@ -102,16 +103,24 @@ begin
     West: Next.Dir := South;
     South: Next.Dir := East;
   end;
-  Last.Dir := Next.Dir;
+  ResetDirection;
   Player.Camera.Direction := Face[Player.Last.Dir];
+end;
+
+procedure TPlayer.ResetDirection;
+begin
+  Last.Dir := Next.Dir;
+  Last.X := Next.X;
+  Last.Y := Next.Y;
 end;
 
 constructor TPlayer.Create;
 begin
   //inherited <-------- nothing to inherit
-  Last.Dir := South;
-  Last.X := 30 div 2;
-  Last.Y := 30 div 2;
+  Next.Dir := South;
+  Next.X := 30 div 2;
+  Next.Y := 30 div 2;
+  ResetDirection;
 
   Camera := TWalkCamera.Create(Window);
   Camera.PreferredHeight := 1 * ScaleY;
