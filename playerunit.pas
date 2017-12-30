@@ -39,7 +39,7 @@ type
   strict private
     procedure ResetDirection;
   public
-    Last, Next: TCoord;
+    Current, Last, Next: TCoord;
     Camera: TWalkCamera;
 
     procedure Move(Fwd: shortint);
@@ -65,9 +65,9 @@ uses
 procedure TPlayer.Manage;
 begin
   ResetDirection;
-  Camera.Position := Vector3(Last.X * 2 * Scale,
-    Camera.PreferredHeight - 1 * ScaleY, Last.Y * 2 * Scale);
-  Camera.Direction := Face[Last.Dir];
+  Camera.Position := Vector3(Current.X * 2 * Scale,
+    Camera.PreferredHeight - 1 * ScaleY, Current.Y * 2 * Scale);
+  Camera.Direction := Face[Current.Dir];
 end;
 
 procedure TPlayer.Move(Fwd: shortint);
@@ -115,6 +115,9 @@ begin
   Last.Dir := Next.Dir;
   Last.X := Next.X;
   Last.Y := Next.Y;
+  Current.Dir := Next.Dir;
+  Current.X := Next.X;
+  Current.Y := Next.Y;
 end;
 
 constructor TPlayer.Create;
