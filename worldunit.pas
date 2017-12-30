@@ -64,7 +64,6 @@ begin
   Viewport.FieldOfView := 0.8;
   GenerationNode.FdChildren.Add(Viewport);
 
-
   Scene.Load(GenerationNode, true);
 
   Window.SceneManager.Items.Add(Scene);

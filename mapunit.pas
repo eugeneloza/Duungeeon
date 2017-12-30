@@ -36,6 +36,9 @@ type
 type
   TLocationGenerator = class(TObject)
   strict private
+    procedure MakeGraveyardLocation;
+  strict private
+    CurrentLocation: TLocation;
     Rnd: TCastleRandom;
     procedure MakeOuterWalls;
   public
@@ -117,15 +120,24 @@ begin
 
 end;
 
-procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
+procedure TLocationGenerator.MakeGraveyardLocation;
 var
   ix, iy: integer;
 begin
   for ix := 0 to MapSizeX-1 do
     for iy := 0 to MapSizeY-1 do
       Map[ix, iy] := Rnd.Random(2);
+end;
+
+procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
+begin
+  CurrentLocation := aLocation;
 
   MakeOuterWalls;
+
+  case CurrentLocation of
+    LGraveyard: MakeGraveyardLocation;
+  end;
 
   //make space for player start location
   Map[EntranceX, EntranceY] := 0;
