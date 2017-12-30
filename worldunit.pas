@@ -53,6 +53,7 @@ begin
   Location.EntranceY := MapSizeY div 2;
   Location.MakeMap(LGraveyard);
   GenerationNode := Location.MakeRoot;
+  Minimap := Location.MakeMinimap;
   Player.Teleport(Location.EntranceX, Location.EntranceY, South);
   Location.Free;
 

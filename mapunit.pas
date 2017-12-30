@@ -24,7 +24,7 @@ unit MapUnit;
 interface
 
 uses
-  CastleRandom, X3DNodes, CastleVectors;
+  CastleRandom, X3DNodes, CastleVectors, CastleImages;
 
 const
   MapSizeX = 30;
@@ -50,6 +50,7 @@ type
 
     procedure MakeMap(const aLocation: TLocation);
     function MakeRoot: TX3DRootNode;
+    function MakeMinimap: TRGBAlphaImage;
 
     constructor Create;
     destructor Destroy; override;
@@ -58,6 +59,7 @@ type
 
 var
   Map: TMap;
+  Minimap: TRGBAlphaImage;
   Location: TLocationGenerator;
 
 
@@ -66,6 +68,7 @@ implementation
 uses
   SysUtils,
   MyLoad3D, CastleFilesUtils, CastleLog,
+  CastleColors, //temp
   WindowUnit;
 
 type
@@ -120,6 +123,20 @@ begin
   Tiles[0].Free;
   Tiles[1].Free;
 end;
+
+function TLocationGenerator.MakeMinimap: TRGBAlphaImage;
+var
+  ix, iy: integer;
+begin
+  Result := TRGBAlphaImage.Create;
+  Result.SetSize(MapSizeX*8, MapSizeY*8);
+  Result.Clear(Vector4Byte(0, 0, 0, 0));
+  for ix := 0 to MapSizeX-1 do
+    for iy := 0 to MapSizeY-1 do begin
+      if Map[ix, iy] = 1 then Result.FillEllipse(ix*8+4, iy*8+4, 5, 5, White);
+    end;
+end;
+
 
 procedure TLocationGenerator.MakeOuterWalls;
 var

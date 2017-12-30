@@ -54,24 +54,32 @@ var
 
 implementation
 
+uses
+  MapUnit;
+
 procedure TMapImage.Draw;
 begin
   if GlMapImage <> nil then
-    GlMapImage.Draw(0,0);
+    GlMapImage.Draw(0,0)
+  else
+    Update;
 end;
 
 procedure TMapImage.Update;
 var
   tmpImage: TRGBAlphaImage;
 begin
-  tmpImage := TRGBAlphaImage.Create;
-  //...
-  tmpImage.Free;
+  if Minimap <> nil then
+  begin
+    tmpImage := Minimap.MakeCopy as TRGBAlphaImage;
+    GLMapImage := TGLImage.Create(tmpImage, true, true);
+  end;
 end;
 
 destructor TMapImage.Destroy;
 begin
   FreeAndNil(GlMapImage);
+  FreeAndNil(Minimap); //temp
   inherited Destroy;
 end;
 
