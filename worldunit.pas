@@ -45,13 +45,12 @@ var
 
   ix, iy: integer;
 begin
+
   Box := LoadBlenderX3D(ApplicationData('tiles/Box.x3d'));
   Pass := LoadBlenderX3D(ApplicationData('tiles/Pass.x3d'));
 
-  EntranceX := MapSizeX div 2;
-  EntranceY := MapSizeY div 2;
-  MakeMap;
-  Player.Teleport(EntranceX, EntranceY, South);
+  Location.MakeMap(LGraveyard);
+  Player.Teleport(Location.EntranceX, Location.EntranceY, South);
 
   {build the scene}
 
@@ -82,9 +81,14 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  GenerationNode := TX3DRootNode.Create;
+  Location := TLocationGenerator.Create;
+  Location.EntranceX := MapSizeX div 2;
+  Location.EntranceY := MapSizeY div 2;
 
+  GenerationNode := TX3DRootNode.Create;
   GenerateMaze(GenerationNode);
+
+  Location.Free;
 
   Nav := TNavigationInfoNode.Create;
   Nav.FdHeadlight.Value := false;

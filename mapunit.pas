@@ -30,22 +30,35 @@ const
   MapSizeX = 30;
   MapSizeY = 30;
 
+type
+  TLocation = (LGraveyard);
+
+type
+  TLocationGenerator = class(TObject)
+  strict private
+    Rnd: TCastleRandom;
+    procedure MakeOuterWalls;
+  public
+    EntranceX, EntranceY: integer;
+
+    procedure MakeMap(const aLocation: TLocation);
+
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+
 var
-  EntranceX, EntranceY: integer;
-  Map: array [0..MapSizeX-1, 0..MapSizeY-1] of byte;
-  Rnd: TCastleRandom;
+  Map: array [0..MapSizeX - 1, 0..MapSizeY - 1] of byte;
+  Location: TLocationGenerator;
 
 
-procedure MakeMap;
 implementation
 
-procedure MakeMap;
-var ix, iy: integer;
+procedure TLocationGenerator.MakeOuterWalls;
+var
+  ix, iy: integer;
 begin
-  for ix := 0 to MapSizeX-1 do
-    for iy := 0 to MapSizeY-1 do
-      Map[ix, iy] := Rnd.Random(2);
-
   //make map borders
   for ix := 0 to MapSizeX-1 do begin
     Map[ix, 0] := 1;
@@ -56,15 +69,33 @@ begin
     Map[MapSizeX-1, iy] := 1;
   end;
 
+end;
+
+procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
+var
+  ix, iy: integer;
+begin
+  for ix := 0 to MapSizeX-1 do
+    for iy := 0 to MapSizeY-1 do
+      Map[ix, iy] := Rnd.Random(2);
+
+  MakeOuterWalls;
+
   //make space for player start location
   Map[EntranceX, EntranceY] := 0;
 end;
 
-initialization
+constructor TLocationGenerator.Create;
+begin
+  //inherited <------ nothing to inherit
   Rnd := TCastleRandom.Create;
+end;
 
-finalization
+destructor TLocationGenerator.Destroy;
+begin
   Rnd.Free;
+  inherited Destroy;
+end;
 
 
 end.
