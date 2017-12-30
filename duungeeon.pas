@@ -15,17 +15,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.}
 
 {---------------------------------------------------------------------------}
 
-{ main file }
+(* main file *)
 
 program Duungeeon;
 
 uses
   SysUtils, CastleWindow, CastleLog,
-  CastleKeysMouse, WorldUnit, PlayerUnit, windowunit;
+  CastleKeysMouse, WorldUnit, PlayerUnit, WindowUnit, GuiUnit;
 
 procedure doManage(Container: TUIContainer);
 begin
   Player.Manage;
+end;
+
+procedure doRender(Container: TUIContainer);
+begin
+  GUI.Draw;
 end;
 
 procedure doPress(Container: TUIContainer; const Event: TInputPressRelease);
@@ -46,7 +51,9 @@ begin
   Window.DoubleBuffer := True;
   Window.OnPress := @doPress;
   Window.OnBeforeRender := @doManage;
+  Window.OnRender := @doRender;
   Application.MainWindow := Window;
+  GUI := TGui.Create(Window);
   PrepareScene;
   Window.OpenAndRun;
 end.

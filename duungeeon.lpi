@@ -92,7 +92,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="8">
       <Unit0>
         <Filename Value="duungeeon.pas"/>
         <IsPartOfProject Value="True"/>
@@ -128,6 +128,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="MapUnit"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="guiunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GuiUnit"/>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
