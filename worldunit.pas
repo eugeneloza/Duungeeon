@@ -112,7 +112,7 @@ begin
   GenerationNode.FdChildren.Add(Nav);
 
   Viewport := TViewpointNode.Create;
-  Viewport.FieldOfView := 1.1;
+  Viewport.FieldOfView := 0.8;
   GenerationNode.FdChildren.Add(Viewport);
 
   Background := TBackgroundNode.Create;
