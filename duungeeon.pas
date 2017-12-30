@@ -30,10 +30,10 @@ procedure doPress(Container: TUIContainer; const Event: TInputPressRelease);
     dx := 0;
     dy := 0;
     Case Player.Dir of
-      dSouth: dx := 1;
-      dNorth: dx := -1;
-      dWest: dy := 1;
-      dEast: dy := -1;
+      South: dx := 1;
+      North: dx := -1;
+      West: dy := 1;
+      East: dy := -1;
     end;
     dx := dx * Fwd;
     dy := dy * Fwd;
@@ -48,22 +48,22 @@ procedure doPress(Container: TUIContainer; const Event: TInputPressRelease);
     if CCW then
     begin
       case Player.Dir of
-        dEast: Player.Dir := dNorth;
-        dNorth: Player.Dir := dWest;
-        dWest: Player.Dir := dSouth;
-        dSouth: Player.Dir := dEast;
+        East: Player.Dir := North;
+        North: Player.Dir := West;
+        West: Player.Dir := South;
+        South: Player.Dir := East;
       end;
     end
     else
     begin
       case Player.Dir of
-        dEast: Player.Dir := dSouth;
-        dNorth: Player.Dir := dEast;
-        dWest: Player.Dir := dNorth;
-        dSouth: Player.Dir := dWest;
+        East: Player.Dir := South;
+        North: Player.Dir := East;
+        West: Player.Dir := North;
+        South: Player.Dir := West;
       end;
     end;
-    Player.Camera.Direction := Player.GetDirection(Player.Dir);
+    Player.Camera.Direction := Face[Player.Dir];
   end;
 begin
   if Event.EventType = itKey then begin

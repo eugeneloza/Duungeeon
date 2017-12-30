@@ -26,7 +26,7 @@ interface
 uses
   CastleVectors, CastleCameras;
 
-type TDir = (dSouth, dWest, dNorth, dEast);
+type TDir = (South, West, North, East);
 
 type
   TPlayer = class(TObject)
@@ -35,14 +35,12 @@ type
     x, y: integer;
     Camera: TWalkCamera;
 
-    function GetDirection(a: TDir): TVector3;
-
     constructor Create;
     destructor Destroy; override;
   end;
 
 var
-  South, West, North, East: TVector3;
+  Face: array [TDir] of TVector3;
   Player: TPlayer;
 
 
@@ -51,20 +49,11 @@ implementation
 uses
   WindowUnit;
 
-function TPlayer.GetDirection(a: TDir): TVector3;
-begin
-  case a of
-    dSouth: Result := South;
-    dEast: Result := East;
-    dWest: Result := West;
-    dNorth: Result := North;
-  end;
-end;
 
 constructor TPlayer.Create;
 begin
-
-  Dir := dSouth;
+  //inherited <-------- nothing to inherit
+  Dir := South;
   X := 30 div 2;
   Y := 30 div 2;
 
@@ -72,21 +61,21 @@ begin
   Camera.PreferredHeight := 1 * ScaleY;
   Camera.Position := Vector3(X * 2 * Scale,
     Camera.PreferredHeight - 1 * ScaleY, Y * 2 * Scale);
-  Camera.Direction := GetDirection(Dir);
+  Camera.Direction := Face[Dir];
   Camera.FallingEffect := false;
   Camera.Input := [];
 end;
 
 destructor TPlayer.Destroy;
 begin
-  inherited;
+  inherited Destroy;
 end;
 
 initialization
-  South := Vector3(1,0,0);
-  North := Vector3(-1,0,0);
-  East := Vector3(0,0,-1);
-  West := Vector3(0,0,1);
+  Face[South] := Vector3(1,0,0);
+  Face[North] := Vector3(-1,0,0);
+  Face[East] := Vector3(0,0,-1);
+  Face[West] := Vector3(0,0,1);
 
 
 finalization
