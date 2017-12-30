@@ -140,7 +140,7 @@ begin
   end;
   dx := dx * Fwd;
   dy := dy * Fwd;
-  if Map[Last.X + dx, Last.Y + dy] = 0 then begin
+  if isPassable(Last.X + dx, Last.Y + dy) then begin
     Next.X := Last.X + dx;
     Next.Y := Last.Y + dy;
   end;
