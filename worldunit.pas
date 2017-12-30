@@ -70,7 +70,7 @@ begin
   end;
 
   //make space for player start location
-  Map[Player.X, Player.Y] := 0;
+  Map[Player.Last.X, Player.Last.Y] := 0;
 
   {build the scene}
 

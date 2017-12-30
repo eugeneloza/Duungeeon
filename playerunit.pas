@@ -29,11 +29,20 @@ uses
 type TDir = (South, West, North, East);
 
 type
-  TPlayer = class(TObject)
-  public
+  TCoord = record
     Dir: TDir;
     x, y: integer;
+  end;
+
+type
+  TPlayer = class(TObject)
+  public
+    Last, Next: TCoord;
     Camera: TWalkCamera;
+
+    procedure Move(Fwd: shortint);
+    procedure RotateClockwise;
+    procedure RotateCounterclockwise;
 
     constructor Create;
     destructor Destroy; override;
@@ -47,21 +56,68 @@ var
 implementation
 
 uses
-  WindowUnit;
+  WindowUnit, WorldUnit;
 
+
+procedure TPlayer.Move(Fwd: shortint);
+var dx, dy: shortint;
+begin
+  dx := 0;
+  dy := 0;
+  case Player.Last.Dir of
+    South: dx := 1;
+    North: dx := -1;
+    West: dy := 1;
+    East: dy := -1;
+  end;
+  dx := dx * Fwd;
+  dy := dy * Fwd;
+  if Map[Player.Last.X + dx, Player.Last.Y + dy] = 0 then begin
+    Player.Next.X := Player.Last.X + dx;
+    Player.Next.Y := Player.Last.Y + dy;
+    Player.Camera.Position := Player.Camera.Position + Fwd * Player.Camera.Direction * Scale * 2;
+    Player.Last.X := Player.Next.X;
+    Player.Last.Y := Player.Next.Y;
+  end;
+end;
+
+
+procedure TPlayer.RotateClockwise;
+begin
+  case Last.Dir of
+    East: Next.Dir := South;
+    North: Next.Dir := East;
+    West: Next.Dir := North;
+    South: Next.Dir := West;
+  end;
+  Last.Dir := Next.Dir;
+  Player.Camera.Direction := Face[Player.Last.Dir];
+end;
+
+procedure TPlayer.RotateCounterclockwise;
+begin
+  case Last.Dir of
+    East: Next.Dir := North;
+    North: Next.Dir := West;
+    West: Next.Dir := South;
+    South: Next.Dir := East;
+  end;
+  Last.Dir := Next.Dir;
+  Player.Camera.Direction := Face[Player.Last.Dir];
+end;
 
 constructor TPlayer.Create;
 begin
   //inherited <-------- nothing to inherit
-  Dir := South;
-  X := 30 div 2;
-  Y := 30 div 2;
+  Last.Dir := South;
+  Last.X := 30 div 2;
+  Last.Y := 30 div 2;
 
   Camera := TWalkCamera.Create(Window);
   Camera.PreferredHeight := 1 * ScaleY;
-  Camera.Position := Vector3(X * 2 * Scale,
-    Camera.PreferredHeight - 1 * ScaleY, Y * 2 * Scale);
-  Camera.Direction := Face[Dir];
+  Camera.Position := Vector3(Last.X * 2 * Scale,
+    Camera.PreferredHeight - 1 * ScaleY, Last.Y * 2 * Scale);
+  Camera.Direction := Face[Last.Dir];
   Camera.FallingEffect := false;
   Camera.Input := [];
 end;
