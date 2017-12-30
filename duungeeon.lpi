@@ -4,6 +4,7 @@
     <Version Value="10"/>
     <General>
       <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
@@ -91,7 +92,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="7">
       <Unit0>
         <Filename Value="duungeeon.pas"/>
         <IsPartOfProject Value="True"/>
@@ -122,6 +123,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="WindowUnit"/>
       </Unit5>
+      <Unit6>
+        <Filename Value="mapunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MapUnit"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

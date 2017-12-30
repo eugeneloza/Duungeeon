@@ -15,7 +15,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.}
 
 {---------------------------------------------------------------------------}
 
-{ Generates the world }
+(* Constructs and manages the world *)
 
 unit WorldUnit;
 
@@ -25,52 +25,33 @@ interface
 
 uses
   SysUtils, MyLoad3D, CastleWindow, CastleSceneCore, CastleScene,
-  CastleLog, CastleFilesUtils, CastleCameras,
-  X3DLoad, X3DNodes, CastleRandom, CastleVectors;
+  CastleLog, CastleFilesUtils, X3DNodes, CastleVectors;
 
-const
-  MapSizeX = 30;
-  MapSizeY = 30;
 
 var
   Scene: TCastleScene;
-  Map: array [0..MapSizeX-1, 0..MapSizeY-1] of byte;
 
 procedure PrepareScene;
 implementation
 
 uses
-  WindowUnit, PlayerUnit;
+  WindowUnit, PlayerUnit, MapUnit;
 
 procedure GenerateMaze(var Root: TX3DRootNode);
 var
   Box: TX3DRootNode;
   Pass: TX3DRootNode;
   Translation: TTransformNode;
-  Rnd: TCastleRandom;
 
   ix, iy: integer;
 begin
   Box := LoadBlenderX3D(ApplicationData('tiles/Box.x3d'));
   Pass := LoadBlenderX3D(ApplicationData('tiles/Pass.x3d'));
-  Rnd := TCastleRandom.Create;
 
-  for ix := 0 to MapSizeX-1 do
-    for iy := 0 to MapSizeY-1 do
-      Map[ix, iy] := Rnd.Random(2);
-
-  //make map borders
-  for ix := 0 to MapSizeX-1 do begin
-    Map[ix, 0] := 1;
-    Map[ix, MapSizeY-1] := 1;
-  end;
-  for iy := 0 to MapSizeY-1 do begin
-    Map[0, iy] := 1;
-    Map[MapSizeX-1, iy] := 1;
-  end;
-
-  //make space for player start location
-  Map[Player.Last.X, Player.Last.Y] := 0;
+  EntranceX := MapSizeX div 2;
+  EntranceY := MapSizeY div 2;
+  MakeMap;
+  Player.Teleport(EntranceX, EntranceY, South);
 
   {build the scene}
 
@@ -86,8 +67,6 @@ begin
       Translation.Scale := Vector3(Scale, ScaleY, Scale);
       Root.FdChildren.Add(Translation);
     end;
-
-  FreeAndNil(Rnd);
 end;
 
 procedure PrepareScene;
