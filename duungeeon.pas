@@ -23,6 +23,7 @@ uses
   SysUtils, CastleWindow, CastleLog,
   CastleKeysMouse, WorldUnit, PlayerUnit, WindowUnit, GuiUnit;
 
+{$PUSH}{$WARN 5024 off : Parameter "$1" not used}
 procedure doManage(Container: TUIContainer);
 begin
   Player.Manage;
@@ -44,6 +45,7 @@ begin
     end;
   end;
 end;
+{$POP}
 
 begin
   InitializeLog('0', nil, ltTime);
