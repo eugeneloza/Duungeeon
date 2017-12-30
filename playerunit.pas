@@ -43,9 +43,14 @@ type
     MoveStart: TTimerResult;
     isMoving: boolean;
     procedure ResetDirection;
+    procedure ResetCamera;
   public
     Last, Next: TCoord;
     Camera: TWalkCamera;
+
+    procedure ForceEndTurn;
+
+    procedure Teleport(const tx, ty: integer; const td: TDir);
 
     procedure Move(Fwd: shortint);
     procedure RotateClockwise;
@@ -65,7 +70,29 @@ var
 implementation
 
 uses
-  WindowUnit, WorldUnit;
+  WindowUnit, MapUnit;
+
+procedure TPlayer.ForceEndTurn;
+begin
+  //enemy actions should be here
+  ResetDirection;
+end;
+
+procedure TPlayer.Teleport(const tx, ty: integer; const td: TDir);
+begin
+  Next.X := tx;
+  Next.Y := ty;
+  Next.Dir := td;
+  ResetDirection;
+  ResetCamera;
+end;
+
+procedure TPlayer.ResetCamera;
+begin
+  Camera.Position := Vector3(Next.X * 2 * Scale,
+    Camera.PreferredHeight - 1 * ScaleY, Next.Y * 2 * Scale);
+  Camera.Direction := Face[Next.Dir];
+end;
 
 procedure TPlayer.Manage;
 var
@@ -86,25 +113,22 @@ begin
       cx := Next.X * Phase + Last.X * (1 - Phase);
       cy := Next.Y * Phase + Last.Y * (1 - Phase);
       cface := Face[Next.Dir] * Phase + Face[Last.Dir] * (1 - Phase);
+      Camera.Position := Vector3(cx * 2 * Scale,
+        Camera.PreferredHeight - 1 * ScaleY, cy * 2 * Scale);
+      Camera.Direction := cface;
     end
     else begin
       ResetDirection;
-      cx := Next.X;
-      cy := Next.Y;
-      cface := Face[Next.Dir];
+      ResetCamera;
       isMoving := false;
     end;
-
-    Camera.Position := Vector3(cx * 2 * Scale,
-      Camera.PreferredHeight - 1 * ScaleY, cy * 2 * Scale);
-    Camera.Direction := cface;
   end;
 end;
 
 procedure TPlayer.Move(Fwd: shortint);
 var dx, dy: shortint;
 begin
-  if isMoving then ResetDirection;
+  if isMoving then ForceEndTurn;
 
   dx := 0;
   dy := 0;
@@ -125,7 +149,7 @@ end;
 
 procedure TPlayer.RotateClockwise;
 begin
-  if isMoving then ResetDirection;
+  if isMoving then ForceEndTurn;
 
   case Last.Dir of
     East: Next.Dir := South;
@@ -137,7 +161,7 @@ end;
 
 procedure TPlayer.RotateCounterclockwise;
 begin
-  if isMoving then ResetDirection;
+  if isMoving then ForceEndTurn;
 
   case Last.Dir of
     East: Next.Dir := North;
