@@ -24,7 +24,7 @@ unit MapUnit;
 interface
 
 uses
-  CastleRandom;
+  CastleRandom, X3DNodes, CastleVectors;
 
 const
   MapSizeX = 30;
@@ -42,6 +42,7 @@ type
     EntranceX, EntranceY: integer;
 
     procedure MakeMap(const aLocation: TLocation);
+    function MakeRoot: TX3DRootNode;
 
     constructor Create;
     destructor Destroy; override;
@@ -54,6 +55,51 @@ var
 
 
 implementation
+
+uses
+  SysUtils,
+  MyLoad3D, CastleFilesUtils, CastleLog,
+  WindowUnit;
+
+function TLocationGenerator.MakeRoot: TX3DRootNode;
+var
+  Box: TX3DRootNode;
+  Pass: TX3DRootNode;
+
+  Translation: TTransformNode;
+  Background: TBackgroundNode;
+  ix, iy: integer;
+begin
+  Result := TX3DRootNode.Create;
+
+  Box := LoadBlenderX3D(ApplicationData('tiles/Box.x3d'));
+  Pass := LoadBlenderX3D(ApplicationData('tiles/Pass.x3d'));
+
+  {build the scene}
+
+  for ix := 0 to MapSizeX-1 do
+    for iy := 0 to MapSizeY-1 do begin
+      Translation := TTransformNode.Create;
+      case Map[ix, iy] of
+        0: Translation.FdChildren.Add(Pass);
+        1: Translation.FdChildren.Add(Box);
+        else WriteLnLog('Error: unexpected biome in map generation '+ IntToStr(Map[ix, iy]));
+      end;
+      Translation.Translation := Vector3(ix*2*Scale, 0, iy*2*Scale);
+      Translation.Scale := Vector3(Scale, ScaleY, Scale);
+      Result.FdChildren.Add(Translation);
+    end;
+
+  Background := TBackgroundNode.Create;
+  Background.FdBackUrl.Items.Add(ApplicationData('skybox/bkg2_back6_CC0_by_StumpyStrust.tga'));
+  Background.FdBottomUrl.Items.Add(ApplicationData('skybox/bkg2_bottom4_CC0_by_StumpyStrust.tga'));
+  Background.FdFrontUrl.Items.Add(ApplicationData('skybox/bkg2_front5_CC0_by_StumpyStrust.tga'));
+  Background.FdLeftUrl.Items.Add(ApplicationData('skybox/bkg2_left2_CC0_by_StumpyStrust.tga'));
+  Background.FdRightUrl.Items.Add(ApplicationData('skybox/bkg2_right1_CC0_by_StumpyStrust.tga'));
+  Background.FdTopUrl.Items.Add(ApplicationData('skybox/bkg2_top3_CC0_by_StumpyStrust.tga'));
+  Result.FdChildren.Add(Background);
+
+end;
 
 procedure TLocationGenerator.MakeOuterWalls;
 var

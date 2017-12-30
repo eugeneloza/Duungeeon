@@ -24,9 +24,8 @@ unit WorldUnit;
 interface
 
 uses
-  SysUtils, MyLoad3D, CastleWindow, CastleSceneCore, CastleScene,
-  CastleLog, CastleFilesUtils, X3DNodes, CastleVectors;
-
+  SysUtils, CastleWindow, CastleSceneCore, CastleScene,
+  CastleLog, X3DNodes, CastleVectors;
 
 var
   Scene: TCastleScene;
@@ -37,43 +36,11 @@ implementation
 uses
   WindowUnit, PlayerUnit, MapUnit;
 
-procedure GenerateMaze(var Root: TX3DRootNode);
-var
-  Box: TX3DRootNode;
-  Pass: TX3DRootNode;
-  Translation: TTransformNode;
-
-  ix, iy: integer;
-begin
-
-  Box := LoadBlenderX3D(ApplicationData('tiles/Box.x3d'));
-  Pass := LoadBlenderX3D(ApplicationData('tiles/Pass.x3d'));
-
-  Location.MakeMap(LGraveyard);
-  Player.Teleport(Location.EntranceX, Location.EntranceY, South);
-
-  {build the scene}
-
-  for ix := 0 to MapSizeX-1 do
-    for iy := 0 to MapSizeY-1 do begin
-      Translation := TTransformNode.Create;
-      case Map[ix, iy] of
-        0: Translation.FdChildren.Add(Pass);
-        1: Translation.FdChildren.Add(Box);
-        else WriteLnLog('Error: unexpected biome in map generation '+ IntToStr(Map[ix, iy]));
-      end;
-      Translation.Translation := Vector3(ix*2*Scale, 0, iy*2*Scale);
-      Translation.Scale := Vector3(Scale, ScaleY, Scale);
-      Root.FdChildren.Add(Translation);
-    end;
-end;
-
 procedure PrepareScene;
 var
   GenerationNode: TX3DRootNode;
   Nav: TNavigationInfoNode;
   Viewport: TViewpointNode;
-  Background: TBackgroundNode;
 begin
   Player := TPlayer.Create;
 
@@ -84,10 +51,9 @@ begin
   Location := TLocationGenerator.Create;
   Location.EntranceX := MapSizeX div 2;
   Location.EntranceY := MapSizeY div 2;
-
-  GenerationNode := TX3DRootNode.Create;
-  GenerateMaze(GenerationNode);
-
+  Location.MakeMap(LGraveyard);
+  GenerationNode := Location.MakeRoot;
+  Player.Teleport(Location.EntranceX, Location.EntranceY, South);
   Location.Free;
 
   Nav := TNavigationInfoNode.Create;
@@ -98,15 +64,6 @@ begin
   Viewport.FieldOfView := 0.8;
   GenerationNode.FdChildren.Add(Viewport);
 
-  Background := TBackgroundNode.Create;
-  Background.FdBackUrl.Items.Add(ApplicationData('skybox/bkg2_back6_CC0_by_StumpyStrust.tga'));
-  Background.FdBottomUrl.Items.Add(ApplicationData('skybox/bkg2_bottom4_CC0_by_StumpyStrust.tga'));
-  Background.FdFrontUrl.Items.Add(ApplicationData('skybox/bkg2_front5_CC0_by_StumpyStrust.tga'));
-  Background.FdLeftUrl.Items.Add(ApplicationData('skybox/bkg2_left2_CC0_by_StumpyStrust.tga'));
-  Background.FdRightUrl.Items.Add(ApplicationData('skybox/bkg2_right1_CC0_by_StumpyStrust.tga'));
-  Background.FdTopUrl.Items.Add(ApplicationData('skybox/bkg2_top3_CC0_by_StumpyStrust.tga'));
-
-  GenerationNode.FdChildren.Add(Background);
 
   Scene.Load(GenerationNode, true);
 
