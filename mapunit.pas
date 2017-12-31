@@ -29,11 +29,12 @@ uses
 const
   MapSizeX = 30;
   MapSizeY = 30;
+  MapArea = (MapSizeX - 2) * (MapSizeY - 2);
 
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum);
+  TLocation = (LGraveyard, LMausoleum, LForest);
 
 type
   TMapItem = integer;
@@ -47,12 +48,13 @@ type
 
     procedure MakeRandomMap;
     procedure MakeBoxMap;
+    procedure MakeDrunkenWalkerMap;
   strict private {map generation tools}
     FloodMap: TMap;
     CurrentLocation: TLocation;
     Rnd: TCastleRandom;
     procedure ClearFloodFill;
-    procedure ClearMap;
+    procedure ClearMap(const aValue: TMapItem);
     function SafeFloodMap(const ax, ay: integer): TMapItem;
     function isInaccessible(const ax, ay: integer): boolean;
     function isAccessible(const ax, ay: integer): boolean;
@@ -187,13 +189,13 @@ begin
 
 end;
 
-procedure TLocationGenerator.ClearMap;
+procedure TLocationGenerator.ClearMap(const aValue: TMapItem);
 var
   ix, iy: integer;
 begin
   for ix := 0 to MapSizeX - 1 do
     for iy := 0 to MapSizeY - 1 do
-      Map[ix, iy] := 0;
+      Map[ix, iy] := aValue;
 end;
 
 procedure TLocationGenerator.ClearFloodFill;
@@ -391,7 +393,7 @@ var
   ix, iy: integer;
   r, r2, rmax, BlockCount: integer;
 begin
-  ClearMap;
+  ClearMap(0);
   MakeOuterWalls;
 
   //make map borders
@@ -460,6 +462,79 @@ begin
   //make space for player start location
   Map[EntranceX, EntranceY] := 0;
 
+  OpenInaccessible;
+end;
+
+procedure TLocationGenerator.MakeDrunkenWalkerMap;
+var
+  mx, my: integer;
+  dx, dy: shortint;
+  WallHardness: TMap;
+  FreeSpace: integer;
+
+  procedure ClearHardnessMap;
+  var
+    jx, jy: integer;
+  begin
+    for jx := 0 to MapSizeX - 1 do
+      for jy := 0 to MapSizeY - 1 do
+        WallHardness[jx, jy] := 1;
+  end;
+  function CanDig(const ax, ay: integer): boolean;
+  begin
+    if (ax = 1) or (ay = 1) or (ax = MapSizeX - 1) or (ay = MapSizeY - 1) then
+      Result := false
+    else
+      if isPassable(ax,ay) then
+        Result := true
+      else
+        Result := (Rnd.Random < 0.001) or (Rnd.Random < Sqr(1 / WallHardness[ax, ay]));
+  end;
+  procedure RandomDirection;
+  begin
+    if Rnd.RandomBoolean then
+    begin
+      dy := 0;
+      if Rnd.RandomBoolean then
+        dx := +1
+      else
+        dx := -1;
+    end
+    else
+    begin
+      dx := 0;
+      if Rnd.RandomBoolean then
+        dy := +1
+      else
+        dy := -1;
+    end;
+  end;
+  procedure Dig(const ax, ay: integer);
+  begin
+    if (dx<>-1) and (not isPassable(ax - 1, ay)) then inc(WallHardness[ax - 1, ay]);
+    if (dx<>+1) and (not isPassable(ax + 1, ay)) then inc(WallHardness[ax + 1, ay]);
+    if (dy<>-1) and (not isPassable(ax, ay - 1)) then inc(WallHardness[ax, ay - 1]);
+    if (dy<>+1) and (not isPassable(ax, ay + 1)) then inc(WallHardness[ax, ay + 1]);
+    if not isPassable(ax, ay) then inc(FreeSpace);
+    Map[ax, ay] := 0;
+    mx := ax;
+    my := ay;
+  end;
+begin
+  ClearMap(1);
+  ClearHardnessMap;
+  FreeSpace := 0;
+  mx := EntranceX;
+  my := EntranceY;
+  Dig(mx, my);
+  repeat
+    RandomDirection;
+    if CanDig(mx + dx, my + dy) then Dig(mx + dx, my + dy);
+    if Rnd.Random < 0.01 then begin
+      mx := EntranceX;
+      my := EntranceY;
+    end;
+  until FreeSpace > MapArea div 2;
   ProcessWallBlocks;
   //ProcessWallDeadends;
   OpenInaccessible;
@@ -477,6 +552,7 @@ begin
   case CurrentLocation of
     LGraveyard: MakeRandomMap;
     LMausoleum: MakeBoxMap;
+    LForest: MakeDrunkenWalkerMap;
   end;
 
   {build distance map}
