@@ -34,7 +34,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum, LForest);
+  TLocation = (LGraveyard, LMausoleum, LForest, LCatacombs);
 
 type
   TMapItem = integer;
@@ -49,6 +49,7 @@ type
     procedure MakeRandomMap;
     procedure MakeBoxMap;
     procedure MakeDrunkenWalkerMap;
+    procedure MakeRotorMap;
   strict private {map generation tools}
     FloodMap: TMap;
     CurrentLocation: TLocation;
@@ -64,6 +65,7 @@ type
     procedure ProcessWallBlocks;
     { leave no walls with less than 2 nearby passable tiles }
     procedure ProcessWallDeadends;
+    procedure FloodWallBlocks;
     procedure MakeOuterWalls;
   public
     EntranceX, EntranceY: integer;
@@ -346,6 +348,27 @@ begin
       end;
 end;
 
+procedure TLocationGenerator.FloodWallBlocks;
+var
+  ix, iy: integer;
+  tmpMap: TMap;
+begin
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do begin
+      tmpMap[ix, iy] := 0;
+      if Map[ix, iy] = 1 then
+      begin
+        if (Map[ix - 1, iy] = 1) and (Map[ix + 1, iy] = 1) and
+           (Map[ix, iy - 1] = 1) and (Map[ix, iy + 1] = 1) then
+          tmpMap[ix, iy] := 1;
+      end;
+    end;
+
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do if tmpMap[ix, iy] = 1 then
+      Map[ix, iy] := 0;
+end;
+
 procedure TLocationGenerator.ProcessWallDeadends;
 var
   ix, iy: integer;
@@ -540,6 +563,95 @@ begin
   OpenInaccessible;
 end;
 
+procedure TLocationGenerator.MakeRotorMap;
+const
+  RotorLength = 4;
+var
+  mx, my, ml: integer;
+  dx, dy: shortint;
+  FreeSpace: integer;
+  procedure RandomDirection;
+  begin
+    if Rnd.RandomBoolean then
+    begin
+      dy := 0;
+      if Rnd.RandomBoolean then
+        dx := +1
+      else
+        dx := -1;
+    end
+    else
+    begin
+      dx := 0;
+      if Rnd.RandomBoolean then
+        dy := +1
+      else
+        dy := -1;
+    end;
+  end;
+  function CanDig(const ax, ay: integer): boolean;
+  begin
+    if (ax = 1) or (ay = 1) or (ax = MapSizeX - 1) or (ay = MapSizeY - 1) then
+      Result := false
+    else
+      Result := true
+  end;
+  procedure Dig(const ax, ay: integer);
+  begin
+    if not isPassable(ax, ay) then begin
+      Map[ax, ay] := 0;
+      inc(FreeSpace);
+    end;
+  end;
+  function Rotor(doDig: boolean): boolean;
+  var
+    mx1, my1: integer;
+    i: integer;
+    cp, cw: integer;
+  begin
+    Result := true;
+    cp := 0;
+    cw := 0;
+    mx1 := mx;
+    my1 := my;
+    for i := 1 to ml do
+    begin
+      if CanDig(mx1, my1) then
+      begin
+        if doDig then Dig(mx1, my1);
+
+        if isPassable(mx1, my1) then inc(cp) else inc(cw);
+        if isPassable(mx1+1, my1) then inc(cp) else inc(cw);
+        if isPassable(mx1-1, my1) then inc(cp) else inc(cw);
+        if isPassable(mx1, my1+1) then inc(cp) else inc(cw);
+        if isPassable(mx1, my1-1) then inc(cp) else inc(cw);
+
+        mx1 := mx1 + dx;
+        my1 := my1 + dy;
+      end
+      else
+        Result := false;
+    end;
+    //if too many passages around
+    if 3 * cp > cw then Result := false;
+  end;
+begin
+  ClearMap(1);
+  FreeSpace := 0;
+  Dig(EntranceX, EntranceY);
+  repeat
+    RandomDirection;
+    mx := Rnd.Random(MapSizeX - 2) + 1;
+    my := Rnd.Random(MapSizeY - 2) + 1;
+    ml := Round(sqrt(Rnd.Random * 2) * RotorLength) + 1;
+    if Rotor(false) then Rotor(true);
+  until FreeSpace > MapArea div 2;
+  FloodWallBlocks;
+  //ProcessWallDeadends;
+  OpenInaccessible;
+end;
+
+
 procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
 begin
   CurrentLocation := aLocation;
@@ -553,6 +665,7 @@ begin
     LGraveyard: MakeRandomMap;
     LMausoleum: MakeBoxMap;
     LForest: MakeDrunkenWalkerMap;
+    LCatacombs: MakeRotorMap;
   end;
 
   {build distance map}
