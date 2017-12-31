@@ -34,7 +34,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky, LMaze);
+  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky, LMaze, LTwisty);
 
 type
   TMapItem = integer;
@@ -52,6 +52,7 @@ type
     procedure MakeRotorMap;
     procedure MakeCheckersMap;
     procedure MakeDenseCheckersMap;
+    procedure MakeTwistyMap;
     procedure MakeBlockyMap;
   strict private {map generation tools}
     FloodMap: TMap;
@@ -686,6 +687,42 @@ begin
   OpenInaccessible;
 end;
 
+procedure TLocationGenerator.MakeTwistyMap;
+const
+  OpenChance = 0.4;
+var
+  ix, iy: integer;
+begin
+  ClearMap(0);
+  MakeOuterWalls;
+  for ix := 0 to (MapSizeX) div 4 - 1 do
+    for iy := 1 to MapSizeY - 2 do
+      Map[4 + ix * 4, iy] := 1;
+  for iy := 0 to (MapSizeY) div 4 - 1 do
+    for ix := 1 to MapSizeX - 2 do
+      Map[ix, 4 + iy * 4] := 1;
+
+  //put columns
+  for ix := 0 to (MapSizeX) div 4 - 1 do
+    for iy := 0 to (MapSizeY) div 4 - 1 do
+      Map[2 + ix * 4, 2 + iy * 4] := 1;
+
+  //open passages
+  for ix := 0 to (MapSizeX) div 4 - 1 do
+    for iy := 0 to (MapSizeY) div 4 - 1 do begin
+      if (Rnd.Random < OpenChance) and (4 + ix * 4 < MapSizeX - 3) then
+        Map[4 + ix * 4, 2 + iy * 4] := 0;
+      if (Rnd.Random < OpenChance) and (4 + iy * 4 < MapSizeY - 3) then
+        Map[2 + ix * 4, 4 + iy * 4] := 0;
+      if (Rnd.Random < OpenChance) and (ix > 0) then
+        Map[ix * 4, 2 + iy * 4] := 0;
+      if (Rnd.Random < OpenChance) and (iy > 0) then
+        Map[2 + ix * 4, iy * 4] := 0;
+    end;
+  Map[EntranceX, EntranceY] := 0;
+  OpenInaccessible;
+end;
+
 procedure TLocationGenerator.MakeBlockyMap;
 var
   mx, my: integer;
@@ -752,6 +789,7 @@ begin
     LCheckers: MakeCheckersMap;
     LBlocky: MakeBlockyMap;
     LMaze: MakeDenseCheckersMap;
+    LTwisty: MakeTwistyMap;
   end;
 
   {build distance map}
