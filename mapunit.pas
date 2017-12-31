@@ -34,7 +34,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LRooms);
+  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky);
 
 type
   TMapItem = integer;
@@ -51,6 +51,7 @@ type
     procedure MakeDrunkenWalkerMap;
     procedure MakeRotorMap;
     procedure MakeCheckersMap;
+    procedure MakeBlockyMap;
   strict private {map generation tools}
     FloodMap: TMap;
     CurrentLocation: TLocation;
@@ -668,6 +669,55 @@ begin
   OpenInaccessible;
 end;
 
+procedure TLocationGenerator.MakeBlockyMap;
+var
+  mx, my: integer;
+  ix, iy: integer;
+  sx, sy: integer;
+  flg: boolean;
+  FreeSpace: integer;
+  Count: integer;
+begin
+  ClearMap(1);
+  MakeOuterWalls;
+  Count := 0;
+  FreeSpace := 0;
+  repeat
+    inc(Count);
+    mx := Rnd.Random(MapSizeX - 2) + 1;
+    my := Rnd.Random(MapSizeY - 2) + 1;
+    sx := Round(sqr(Rnd.Random)*5) + 1;
+    sy := Round(sqr(Rnd.Random)*5) + 1;
+    flg := true;
+    for ix := - 1 to sx + 1 do
+      for iy :=  - 1 to sy + 1 do
+        if ((ix <> -1) or (iy <> -1)) and
+           ((ix <> sx + 1) or (iy <> -1)) and
+           ((ix <> -1) or (iy <> sy + 1)) and
+           ((ix <> sx + 1) or (iy <> sy + 1)) then
+          if isPassable(mx + ix, my + iy) then begin
+            flg := false;
+            Break;
+          end;
+    if flg then
+      for ix := mx to mx + sx do if ix < MapSizeX - 1 then
+        for iy := my to my + sy do if iy < MapSizeY - 1 then
+        begin
+          inc(FreeSpace);
+          Map[ix, iy] := 0;
+        end;
+  until (FreeSpace > MapArea div 2) or (Count > 10*Sqr(MapArea));
+  {for mx := 1 to MapSizeX - 2 do
+    for my := 1 to MapSizeY - 2 do
+      if not isPassable(mx+1, my) and not isPassable(mx, my+1) and
+        not isPassable(mx+1, my+1) then
+        Map[mx, my] := 0; }
+
+  Map[EntranceX, EntranceY] := 0;
+  FloodWallBlocks;
+  OpenInaccessible;
+end;
+
 
 procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
 begin
@@ -682,7 +732,8 @@ begin
     LMausoleum: MakeBoxMap;
     LForest: MakeDrunkenWalkerMap;
     LCatacomb: MakeRotorMap;
-    LRooms: MakeCheckersMap;
+    LCheckers: MakeCheckersMap;
+    LBlocky: MakeBlockyMap;
   end;
 
   {build distance map}
