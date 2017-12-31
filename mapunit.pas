@@ -34,7 +34,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum, LForest, LCatacombs);
+  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LRooms);
 
 type
   TMapItem = integer;
@@ -50,6 +50,7 @@ type
     procedure MakeBoxMap;
     procedure MakeDrunkenWalkerMap;
     procedure MakeRotorMap;
+    procedure MakeCheckersMap;
   strict private {map generation tools}
     FloodMap: TMap;
     CurrentLocation: TLocation;
@@ -651,6 +652,22 @@ begin
   OpenInaccessible;
 end;
 
+procedure TLocationGenerator.MakeCheckersMap;
+var
+  ix, iy: integer;
+begin
+  ClearMap(0);
+  MakeOuterWalls;
+  for ix := 0 to (MapSizeX) div 3 - 2 do
+    for iy := 1 to MapSizeY - 2 do
+      Map[3 + ix * 3, iy] := 1;
+  for iy := 0 to (MapSizeY) div 3 - 2 do
+    for ix := 1 to MapSizeX - 2 do
+      Map[ix, 3 + iy * 3] := 1;
+  Map[EntranceX, EntranceY] := 0;
+  OpenInaccessible;
+end;
+
 
 procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
 begin
@@ -658,14 +675,14 @@ begin
 
   {get accessible area}
   ClearFloodFill;
-  //FloodFill;
 
   {do the core map generation}
   case CurrentLocation of
     LGraveyard: MakeRandomMap;
     LMausoleum: MakeBoxMap;
     LForest: MakeDrunkenWalkerMap;
-    LCatacombs: MakeRotorMap;
+    LCatacomb: MakeRotorMap;
+    LRooms: MakeCheckersMap;
   end;
 
   {build distance map}
