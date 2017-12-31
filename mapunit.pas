@@ -34,7 +34,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky);
+  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky, LMaze);
 
 type
   TMapItem = integer;
@@ -51,6 +51,7 @@ type
     procedure MakeDrunkenWalkerMap;
     procedure MakeRotorMap;
     procedure MakeCheckersMap;
+    procedure MakeDenseCheckersMap;
     procedure MakeBlockyMap;
   strict private {map generation tools}
     FloodMap: TMap;
@@ -669,6 +670,22 @@ begin
   OpenInaccessible;
 end;
 
+procedure TLocationGenerator.MakeDenseCheckersMap;
+var
+  ix, iy: integer;
+begin
+  ClearMap(0);
+  MakeOuterWalls;
+  for ix := 0 to (MapSizeX) div 2 - 2 do
+    for iy := 1 to MapSizeY - 2 do
+      Map[3 + ix * 2, iy] := 1;
+  for iy := 0 to (MapSizeY) div 2 - 2 do
+    for ix := 1 to MapSizeX - 2 do
+      Map[ix, 3 + iy * 2] := 1;
+  Map[EntranceX, EntranceY] := 0;
+  OpenInaccessible;
+end;
+
 procedure TLocationGenerator.MakeBlockyMap;
 var
   mx, my: integer;
@@ -734,6 +751,7 @@ begin
     LCatacomb: MakeRotorMap;
     LCheckers: MakeCheckersMap;
     LBlocky: MakeBlockyMap;
+    LMaze: MakeDenseCheckersMap;
   end;
 
   {build distance map}
