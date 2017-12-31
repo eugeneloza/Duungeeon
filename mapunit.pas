@@ -34,7 +34,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky, LMaze, LTwisty);
+  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky, LMaze, LTwisty, LDeepForest);
 
 type
   TMapItem = integer;
@@ -54,6 +54,8 @@ type
     procedure MakeDenseCheckersMap;
     procedure MakeTwistyMap;
     procedure MakeBlockyMap;
+    procedure MakePixelgrowMap;
+    //procedure MakeSineMap;
   strict private {map generation tools}
     FloodMap: TMap;
     CurrentLocation: TLocation;
@@ -423,7 +425,6 @@ begin
   ClearMap(0);
   MakeOuterWalls;
 
-  //make map borders
   if MapSizeX < MapSizey then
     rmax := MapSizeX div 4 - 1
   else
@@ -761,16 +762,104 @@ begin
           Map[ix, iy] := 0;
         end;
   until (FreeSpace > MapArea div 2) or (Count > 10*Sqr(MapArea));
-  {for mx := 1 to MapSizeX - 2 do
-    for my := 1 to MapSizeY - 2 do
-      if not isPassable(mx+1, my) and not isPassable(mx, my+1) and
-        not isPassable(mx+1, my+1) then
-        Map[mx, my] := 0; }
-
   Map[EntranceX, EntranceY] := 0;
   FloodWallBlocks;
   OpenInaccessible;
 end;
+
+procedure TLocationGenerator.MakePixelgrowMap;
+var
+  mx, my: integer;
+  FreeSpace, Count: integer;
+  c: integer;
+begin
+  ClearMap(1);
+  FreeSpace := 0;
+  Count := 0;
+  repeat
+    inc(Count);
+    mx := Rnd.Random(MapSizeX - 2) + 1;
+    my := Rnd.Random(MapSizeY - 2) + 1;
+    if not isPassable(mx, my) then begin
+      c := 0;
+      if not isPassable(mx + 1, my) then
+        inc(c);
+      if not isPassable(mx - 1, my) then
+        inc(c);
+      if not isPassable(mx, my + 1) then
+        inc(c);
+      if not isPassable(mx, my - 1) then
+        inc(c);
+      if (c = 3) or ((c = 4) and ((Rnd.Random < 0.1)) or (FreeSpace < 5))  then
+      begin
+        Map[mx, my] := 0;
+        inc(FreeSpace);
+      end;
+    end;
+  until (FreeSpace > MapArea div 2) or (Count > 100*Sqr(MapArea));
+  Map[EntranceX, EntranceY] := 0;
+  //FloodWallBlocks;
+  ProcessWallBlocks;
+  //ProcessWallDeadends;
+  OpenInaccessible;
+end;
+
+{//not working as expected
+procedure TLocationGenerator.MakeSineMap;
+const
+  Harmoniques = 3;
+var
+  i: integer;
+  ix, iy: integer;
+  Amp, wx, wy, Phase: array[1..Harmoniques] of single;
+  maxSine, minSine: single;
+  s: single;
+  function Sine(const ax, ay: integer): single;
+  var j: integer;
+  begin
+    Result := 0;
+    for j := 1 to Harmoniques do
+      Result += Amp[j] * (Sin(wx[j] * ax + wy[j] * ay + Phase[j]));
+    Result := (Result);
+  end;
+begin
+  for i := 1 to Harmoniques do begin
+    Amp[i] := 1 + Rnd.Random;
+    wx[i] := ((1 + Rnd.Random) / 9);
+    if Rnd.RandomBoolean then wx[i] := -wx[i];
+    wy[i] := ((1 + Rnd.Random) / 9);
+    if Rnd.RandomBoolean then wy[i] := -wy[i];
+    Phase[i] := Rnd.Random * 2 * Pi;
+  end;
+
+  maxSine := -1000;
+  minSine := 1000;
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do begin
+      s := Sine(ix, iy);
+      if s > maxSine then
+        maxSine := s;
+      if s < minSine then
+        minSine := s;
+    end;
+
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do
+    begin
+      s := (Sine(ix, iy) - minSine) / (maxSine - minSine);
+      if ((s > 0.1) and (s < 0.2)) or ((s > 0.4) and (s < 0.5)) or
+        ((s > 0.7) and (s < 0.8)) then
+        Map[ix, iy] := 0
+      else
+        Map[ix, iy] := 1;
+    end;
+
+  MakeOuterWalls;
+  Map[EntranceX, EntranceY] := 0;
+  FloodWallBlocks;
+  //ProcessWallDeadends;
+  OpenInaccessible;
+end;}
 
 
 procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
@@ -790,6 +879,8 @@ begin
     LBlocky: MakeBlockyMap;
     LMaze: MakeDenseCheckersMap;
     LTwisty: MakeTwistyMap;
+    //LCave: MakeSineMap;
+    LDeepForest: MakePixelgrowMap;
   end;
 
   {build distance map}

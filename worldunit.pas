@@ -51,7 +51,7 @@ begin
   Location := TLocationGenerator.Create;
   Location.EntranceX := MapSizeX div 2;
   Location.EntranceY := MapSizeY div 2;
-  Location.MakeMap(LTwisty);
+  Location.MakeMap(LDeepForest);
   GenerationNode := Location.MakeRoot;
   Minimap := Location.MakeMinimap;
   Player.Teleport(Location.EntranceX, Location.EntranceY, South);
