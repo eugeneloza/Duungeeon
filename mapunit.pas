@@ -139,6 +139,8 @@ var
   Translation: TTransformNode;
   Background: TBackgroundNode;
   ix, iy: integer;
+
+  //Fog: TFogNode;
 begin
   Result := TX3DRootNode.Create;
 
@@ -165,7 +167,7 @@ begin
   for ix := 0 to MapSizeX-1 do
     for iy := 0 to MapSizeY-1 do begin
       Translation := TTransformNode.Create;
-      if (ix = 0) or (iy = 0) or (ix = MapSizeX - 1) or (iy = MapSizeY - 1) then
+      if ((ix = 0) or (iy = 0) or (ix = MapSizeX - 1) or (iy = MapSizeY - 1)) and (Border.Count > 0) then
         Translation.AddContent(Border[Rnd.Random(Border.Count)])
       else
       if Map[ix, iy] = 0 then
@@ -188,6 +190,13 @@ begin
   Background.FdRightUrl.Items.Add(ApplicationData('skybox/bkg2_right1_CC0_by_StumpyStrust.tga'));
   Background.FdTopUrl.Items.Add(ApplicationData('skybox/bkg2_top3_CC0_by_StumpyStrust.tga'));
   Result.FdChildren.Add(Background);
+
+  {Fog := TFogNode.Create;
+  Fog.VisibilityRange := 10;
+  Fog.Color := Vector3(0.19, 0.19, 0.2);
+  Fog.FdFogType;
+  Result.FdChildren.Add(Fog); }
+  //Scene.DistanceCulling := FogNode.VisibilityRange
 
   Wall.Free;
   Pass.Free;

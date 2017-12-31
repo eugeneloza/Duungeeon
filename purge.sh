@@ -9,3 +9,7 @@ find -type d -name 'lib' -prune -exec rm -rf {} \;
 find . -name '.fuse_hidden*' -delete
 
 rm duungeeon
+
+# Remove screenshots
+
+rm *.png

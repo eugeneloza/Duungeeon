@@ -56,6 +56,8 @@ type
     procedure RotateClockwise;
     procedure RotateCounterclockwise;
 
+    procedure SetCameraTo(const cx, cy: single; const d: TVector3);
+
     procedure Manage;
 
     constructor Create;
@@ -89,9 +91,7 @@ end;
 
 procedure TPlayer.ResetCamera;
 begin
-  Camera.Position := Vector3(Next.X * 2 * Scale,
-    Camera.PreferredHeight, Next.Y * 2 * Scale);
-  Camera.Direction := Face[Next.Dir];
+  SetCameraTo(Next.X, Next.Y, Face[Next.Dir]);
 end;
 
 procedure TPlayer.Manage;
@@ -113,9 +113,7 @@ begin
       cx := Next.X * Phase + Last.X * (1 - Phase);
       cy := Next.Y * Phase + Last.Y * (1 - Phase);
       cface := Face[Next.Dir] * Phase + Face[Last.Dir] * (1 - Phase);
-      Camera.Position := Vector3(cx * 2 * Scale,
-        Camera.PreferredHeight, cy * 2 * Scale);
-      Camera.Direction := cface;
+      SetCameraTo(cx, cy, cface);
     end
     else begin
       ResetDirection;
@@ -123,6 +121,13 @@ begin
       isMoving := false;
     end;
   end;
+end;
+
+procedure TPlayer.SetCameraTo(const cx, cy: single; const d: TVector3);
+begin
+  Camera.Position := Vector3(cx * 2 * Scale - d[0],
+    Camera.PreferredHeight, cy * 2 * Scale - d[2]);
+  Camera.Direction := d;
 end;
 
 procedure TPlayer.Move(Fwd: shortint);

@@ -51,7 +51,7 @@ begin
   Scene.ProcessEvents := true;
 
   Location := TLocationGenerator.Create;
-  Location.EntranceX := MapSizeX div 2;
+  Location.EntranceX := 1;
   Location.EntranceY := MapSizeY div 2;
   Location.MakeMap(LGraveyard);
   GenerationNode := Location.MakeRoot;
