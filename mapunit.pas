@@ -174,6 +174,7 @@ begin
         Translation.AddContent(Wall[Rnd.Random(Wall.Count)]);
 
       Translation.Translation := Vector3(ix * 2 * Scale, 0, iy * 2 * Scale);
+      Translation.Rotation := Vector4(0, 1, 0, Pi / 2 * Rnd.Random(4));
       Translation.Scale := Vector3(Scale, ScaleY, Scale);
       Result.FdChildren.Add(Translation);
     end;

@@ -53,7 +53,7 @@ begin
   Location := TLocationGenerator.Create;
   Location.EntranceX := MapSizeX div 2;
   Location.EntranceY := MapSizeY div 2;
-  Location.MakeMap(LDeepForest);
+  Location.MakeMap(LGraveyard);
   GenerationNode := Location.MakeRoot;
   Minimap := Location.MakeMinimap;
   Player.Teleport(Location.EntranceX, Location.EntranceY, South);
@@ -74,7 +74,7 @@ begin
   GenerationNode.FdChildren.Add(Nav);
 
   Viewport := TViewpointNode.Create;
-  Viewport.FieldOfView := 0.8;
+  Viewport.FieldOfView := 1.3;
   GenerationNode.FdChildren.Add(Viewport);
 
   Scene.Load(GenerationNode, true);
