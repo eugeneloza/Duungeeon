@@ -191,6 +191,7 @@ begin
   Camera.PreferredHeight := 1 * ScaleY;
   Camera.FallingEffect := false;
   Camera.Input := [];
+  Camera.Gravity := false;
 end;
 
 destructor TPlayer.Destroy;

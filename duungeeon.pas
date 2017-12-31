@@ -42,6 +42,7 @@ begin
       k_S: Player.Move(-1);
       k_A: Player.RotateCounterclockwise;
       k_D: Player.RotateClockwise;
+      k_P: Window.SaveScreen('duungeeon.png');
     end;
   end;
 end;

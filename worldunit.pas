@@ -39,7 +39,9 @@ uses
 procedure PrepareScene;
 var
   GenerationNode: TX3DRootNode;
-  Nav: TNavigationInfoNode;
+  Nav: TKambiNavigationInfoNode;
+  NavLight: TPointLightNode; {$HINT Check this}
+
   Viewport: TViewpointNode;
 begin
   Player := TPlayer.Create;
@@ -57,8 +59,18 @@ begin
   Player.Teleport(Location.EntranceX, Location.EntranceY, South);
   Location.Free;
 
-  Nav := TNavigationInfoNode.Create;
-  Nav.FdHeadlight.Value := false;
+  //create light that follows the player
+  NavLight := TPointLightNode.Create;
+  NavLight.FdColor.Value := Vector3(1, 0.3, 0.1);
+  NavLight.FdAttenuation.Value := Vector3(1, 0, 1);
+  NavLight.FdRadius.Value := 10 * 3;
+  NavLight.FdIntensity.Value := 20 * 3;
+  NavLight.FdOn.Value := True;
+  NavLight.FdShadows.Value := False;
+
+  Nav := TKambiNavigationInfoNode.Create;
+  Nav.FdHeadLightNode.Value := NavLight;
+  Nav.FdHeadlight.Value := true;
   GenerationNode.FdChildren.Add(Nav);
 
   Viewport := TViewpointNode.Create;

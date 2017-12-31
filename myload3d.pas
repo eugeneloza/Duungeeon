@@ -69,7 +69,7 @@ procedure AddMaterial(const Root: TX3DRootNode);
           {create a link to each and every material loaded}
           Material := (TShapeNode(Source.FdChildren[i]).FdAppearance.Value.FindNode(
             TMaterialNode, False) as TMaterialNode);
-          Material.AmbientIntensity := 2;
+          Material.AmbientIntensity := 0;
         except
         end;
   end;
