@@ -24,7 +24,7 @@ unit MapUnit;
 interface
 
 uses
-  CastleRandom, X3DNodes, CastleVectors, CastleImages;
+  Generics.Collections, CastleRandom, X3DNodes, CastleVectors, CastleImages;
 
 const
   MapSizeX = 30;
@@ -47,13 +47,19 @@ type
 
     procedure MakeRandomMap;
   strict private {map generation tools}
-    BlockMap, FloodMap: TMap;
+    FloodMap: TMap;
     CurrentLocation: TLocation;
     Rnd: TCastleRandom;
     procedure ClearFloodFill;
-    function SafeFloodMap(ax, ay: integer): TMapItem;
+    function SafeFloodMap(const ax, ay: integer): TMapItem;
+    function isInaccessible(const ax, ay: integer): boolean;
+    function isAccessible(const ax, ay: integer): boolean;
     function FloodFill: boolean;
     procedure OpenInaccessible;
+    { so that there will be no wall completely blocked }
+    procedure ProcessWallBlocks;
+    { leave no walls with less than 2 nearby passable tiles }
+    procedure ProcessWallDeadends;
     procedure MakeOuterWalls;
   public
     EntranceX, EntranceY: integer;
@@ -85,8 +91,13 @@ uses
 
 function isPassable(ax, ay: integer): boolean;
 begin
-  if Map[ax, ay] = 0 then
-    Result := true
+  if (ax >= 0) and (ay >= 0) and (ax < MapSizeX) and (ay < MapSizeY) then
+  begin
+    if Map[ax, ay] = 0 then
+      Result := true
+    else
+      Result := false;
+  end
   else
     Result := false;
 end;
@@ -153,7 +164,7 @@ begin
   Result.Clear(Vector4Byte(0, 0, 0, 0));
   for ix := 0 to MapSizeX - 1 do
     for iy := 0 to MapSizeY - 1 do begin
-      if Map[ix, iy] = 1 then Result.FillEllipse(ix * 8 + 4, iy * 8 + 4, 5, 5, White);
+      if Map[ix, iy] = 1 then Result.FillEllipse(ix * 8 + 4, iy * 8 + 4, 6, 6, White);
     end;
 end;
 
@@ -184,12 +195,28 @@ begin
   FloodMap[EntranceX, EntranceY] := 1;
 end;
 
-function TLocationGenerator.SafeFloodMap(ax, ay: integer): TMapItem;
+function TLocationGenerator.SafeFloodMap(const ax, ay: integer): TMapItem;
 begin
   if (ax >= 0) and (ay >= 0) and (ax < MapSizeX) and (ay < MapSizeY) then
     Result := FloodMap[ax, ay]
   else
     Result := 0;
+end;
+
+function TLocationGenerator.isInaccessible(const ax, ay: integer): boolean;
+begin
+  if SafeFloodMap(ax, ay) = Inaccessible then
+    Result := true
+  else
+    Result := false;
+end;
+
+function TLocationGenerator.isAccessible(const ax, ay: integer): boolean;
+begin
+  if SafeFloodMap(ax, ay) > 0 then
+    Result := true
+  else
+    Result := false;
 end;
 
 function TLocationGenerator.FloodFill: boolean;
@@ -223,54 +250,106 @@ begin
       end;
 end;
 
-procedure TLocationGenerator.OpenInaccessible;
-  function isEligible(const ax, ay: integer): boolean;
-    function InaccessibleAround(const bx, by: integer): boolean;
-    begin
-      if (FloodMap[bx, by] = Inaccessible) or
-        (SafeFloodMap(bx + 1, by) = Inaccessible) or
-        (SafeFloodMap(bx - 1, by) = Inaccessible) or
-        (SafeFloodMap(bx, by - 1) = Inaccessible) or
-        (SafeFloodMap(bx, by + 1) = Inaccessible) then
-        Result := true
-      else
-        Result := false;
-    end;
-  var
-    c: integer;
-  begin
-    Result := false;
-    if Map[ax, ay] = 1 then
-    begin
-      c := 0;
-      if (FloodMap[ax - 1, ay] > 0) then inc(c);
-      if (FloodMap[ax + 1, ay] > 0) then inc(c);
-      if (FloodMap[ax, ay - 1] > 0) then inc(c);
-      if (FloodMap[ax, ay + 1] > 0) then inc(c);
-
-      if (c > 0) and InaccessibleAround(ax,ay) then Result := true;
-
-      if (c > 0) and (not Result) and (Rnd.Random < 0.1) then
-        if InaccessibleAround(ax + 1, ay) or InaccessibleAround(ax - 1, ay) or
-          InaccessibleAround(ax, ay + 1) or InaccessibleAround(ax, ay - 1) then
-           Result := true;
-
-      if (c > 1) and (Rnd.Random < 0.9) then Result := false;
-
-    end;
+type
+  Txy = record
+    x, y: integer;
   end;
+type TMapList = specialize TList<Txy>;
+
+procedure TLocationGenerator.OpenInaccessible;
+var
+  ix, iy: integer;
+  Join, LoopJoin: TMapList;
+  tmp: Txy;
+  ci, cw, ca: integer;
+  indx: integer;
+begin
+  if not FloodFill then begin
+    Join := TMapList.Create;
+    LoopJoin := TMapList.Create;
+    repeat
+      Join.Clear;
+      LoopJoin.Clear;
+      for ix := 1 to MapSizeX - 2 do
+        for iy := 1 to MapSizeY - 2 do if not isPassable(ix,iy) then begin
+          ci := 0;
+          if isInaccessible(ix + 1, iy) then inc(ci);
+          if isInaccessible(ix - 1, iy) then inc(ci);
+          if isInaccessible(ix, iy + 1) then inc(ci);
+          if isInaccessible(ix, iy - 1) then inc(ci);
+          ca := 0;
+          if isAccessible(ix + 1, iy) then inc(ca);
+          if isAccessible(ix - 1, iy) then inc(ca);
+          if isAccessible(ix, iy + 1) then inc(ca);
+          if isAccessible(ix, iy - 1) then inc(ca);
+          cw := 0;
+          if not isPassable(ix + 1, iy) then inc(cw);
+          if not isPassable(ix - 1, iy) then inc(cw);
+          if not isPassable(ix, iy + 1) then inc(cw);
+          if not isPassable(ix, iy - 1) then inc(cw);
+
+          if (ci > 0) then begin
+            if (ca = 1) then begin
+              tmp.x := ix;
+              tmp.y := iy;
+              Join.Add(tmp);
+            end;
+            if (ca > 1) then begin
+              tmp.x := ix;
+              tmp.y := iy;
+              LoopJoin.Add(tmp);
+            end;
+          end;
+        end;
+      if Join.Count > 0 then begin
+        indx := Rnd.Random(Join.Count);
+        Map[Join[indx].x, Join[indx].y] := 0;
+      end
+      else
+      if LoopJoin.Count > 0 then begin
+        indx := Rnd.Random(LoopJoin.Count);
+        Map[LoopJoin[indx].x, LoopJoin[indx].y] := 0;
+      end
+      else
+        raise Exception.Create('Unable to join inaccessible area!');
+
+    until (FloodFill);
+    LoopJoin.Free;
+    Join.Free;
+  end;
+end;
+
+procedure TLocationGenerator.ProcessWallBlocks;
 var
   ix, iy: integer;
 begin
-  {and now process the map}
-  if not FloodFill then
-    repeat
-      repeat
-        ix := 1 + Rnd.Random(MapSizeX - 2);
-        iy := 1 + Rnd.Random(MapSizeY - 2);
-      until isEligible(ix, iy);
-      Map[ix, iy] := 0;
-    until (FloodFill) or (Rnd.Random<0.0001);
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do
+      if Map[ix, iy] = 1 then
+      begin
+        if (Map[ix - 1, iy] = 1) and (Map[ix + 1, iy] = 1) and
+           (Map[ix, iy - 1] = 1) and (Map[ix, iy + 1] = 1) then
+          Map[ix, iy] := 0;
+      end;
+end;
+
+procedure TLocationGenerator.ProcessWallDeadends;
+var
+  ix, iy: integer;
+  c: integer;
+begin
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do
+      if Map[ix, iy] = 1 then
+      begin
+        c := 0;
+        if isPassable(ix - 1, iy) then inc(c);
+        if isPassable(ix + 1, iy) then inc(c);
+        if isPassable(ix, iy - 1) then inc(c);
+        if isPassable(ix, iy + 1) then inc(c);
+        if c <= 1 then
+          Map[ix, iy] := 0;
+      end;
 end;
 
 procedure TLocationGenerator.MakeRandomMap;
@@ -281,7 +360,7 @@ begin
 
   for ix := 1 to MapSizeX - 2 do
     for iy := 1 to MapSizeY - 2 do
-      if (Rnd.Random < 0) then
+      if (Rnd.Random < 0.3) then
         Map[ix, iy] := 0
       else
         Map[ix, iy] := 1;
@@ -289,15 +368,8 @@ begin
   //make space for player start location
   Map[EntranceX, EntranceY] := 0;
 
-  {leave no solid wall blocks}
-  for ix := 1 to MapSizeX - 2 do
-    for iy := 1 to MapSizeY - 2 do
-      if Map[ix, iy] = 1 then
-      begin
-        if (Map[ix - 1, iy] = 1) and (Map[ix + 1, iy] = 1) and
-           (Map[ix, iy - 1] = 1) and (Map[ix, iy + 1] = 1) then
-          Map[ix, iy] := 0;
-      end;
+  ProcessWallBlocks;
+  ProcessWallDeadends;
 
   OpenInaccessible;
 end;
