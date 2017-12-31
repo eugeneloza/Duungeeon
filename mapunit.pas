@@ -53,6 +53,7 @@ type
     procedure ClearFloodFill;
     function SafeFloodMap(ax, ay: integer): TMapItem;
     function FloodFill: boolean;
+    procedure OpenInaccessible;
     procedure MakeOuterWalls;
   public
     EntranceX, EntranceY: integer;
@@ -197,8 +198,6 @@ var
   Count: integer;
   Pass: integer;
 begin
-  ClearFloodFill; {temp!!!}
-
   Pass := 1; {in case we've just cleared FloodMap it'll build a good distance map}
   repeat
     inc(Pass);
@@ -224,23 +223,57 @@ begin
       end;
 end;
 
-procedure TLocationGenerator.MakeRandomMap;
+procedure TLocationGenerator.OpenInaccessible;
   function isEligible(const ax, ay: integer): boolean;
+    function InaccessibleAround(const bx, by: integer): boolean;
+    begin
+      if (FloodMap[bx, by] = Inaccessible) or
+        (SafeFloodMap(bx + 1, by) = Inaccessible) or
+        (SafeFloodMap(bx - 1, by) = Inaccessible) or
+        (SafeFloodMap(bx, by - 1) = Inaccessible) or
+        (SafeFloodMap(bx, by + 1) = Inaccessible) then
+        Result := true
+      else
+        Result := false;
+    end;
+  var
+    c: integer;
   begin
     Result := false;
     if Map[ax, ay] = 1 then
     begin
-      if (FloodMap[ax - 1, ay] > 0) or (FloodMap[ax + 1, ay] > 0) or
-        (FloodMap[ax, ay - 1] > 0) or (FloodMap[ax, ay + 1] > 0) then
-        Result := true
-      {else
-        if (Rnd.Random < 0.1) and
-          (FloodMap[ax - 1, ay] = Inaccessible) or (FloodMap[ax + 1, ay] = Inaccessible) or
-          (FloodMap[ax, ay - 1] = Inaccessible) or (FloodMap[ax, ay + 1] = Inaccessible) then
-          Result := true
-          }
+      c := 0;
+      if (FloodMap[ax - 1, ay] > 0) then inc(c);
+      if (FloodMap[ax + 1, ay] > 0) then inc(c);
+      if (FloodMap[ax, ay - 1] > 0) then inc(c);
+      if (FloodMap[ax, ay + 1] > 0) then inc(c);
+
+      if (c > 0) and InaccessibleAround(ax,ay) then Result := true;
+
+      if (c > 0) and (not Result) and (Rnd.Random < 0.1) then
+        if InaccessibleAround(ax + 1, ay) or InaccessibleAround(ax - 1, ay) or
+          InaccessibleAround(ax, ay + 1) or InaccessibleAround(ax, ay - 1) then
+           Result := true;
+
+      if (c > 1) and (Rnd.Random < 0.9) then Result := false;
+
     end;
   end;
+var
+  ix, iy: integer;
+begin
+  {and now process the map}
+  if not FloodFill then
+    repeat
+      repeat
+        ix := 1 + Rnd.Random(MapSizeX - 2);
+        iy := 1 + Rnd.Random(MapSizeY - 2);
+      until isEligible(ix, iy);
+      Map[ix, iy] := 0;
+    until (FloodFill) or (Rnd.Random<0.0001);
+end;
+
+procedure TLocationGenerator.MakeRandomMap;
 var
   ix, iy: integer;
 begin
@@ -248,10 +281,13 @@ begin
 
   for ix := 1 to MapSizeX - 2 do
     for iy := 1 to MapSizeY - 2 do
-      if (Rnd.Random < 0.2) then
+      if (Rnd.Random < 0) then
         Map[ix, iy] := 0
       else
         Map[ix, iy] := 1;
+
+  //make space for player start location
+  Map[EntranceX, EntranceY] := 0;
 
   {leave no solid wall blocks}
   for ix := 1 to MapSizeX - 2 do
@@ -263,15 +299,7 @@ begin
           Map[ix, iy] := 0;
       end;
 
-  {and now process the map}
-  if not FloodFill then
-    repeat
-      repeat
-        ix := 1 + Rnd.Random(MapSizeX - 2);
-        iy := 1 + Rnd.Random(MapSizeY - 2);
-      until isEligible(ix, iy);
-      Map[ix, iy] := 0;
-    until FloodFill;
+  OpenInaccessible;
 end;
 
 procedure TLocationGenerator.MakeMap(const aLocation: TLocation);
@@ -291,8 +319,6 @@ begin
   ClearFloodFill;
   FloodFill;
 
-  //make space for player start location
-  Map[EntranceX, EntranceY] := 0;
 end;
 
 constructor TLocationGenerator.Create;
