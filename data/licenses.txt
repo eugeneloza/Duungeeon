@@ -1,1 +1,12 @@
-Skybox - CC0 by StumpyStrust@OpenGameArt.org
+Skybox
+	CC0 by StumpyStrust@OpenGameArt.org
+	https://opengameart.org/content/space-skyboxes-0
+
+Graveyard location
+	CC-BY 3.0 by p0ss (mesh by Savino)
+	https://opengameart.org/content/savinos-cemetery-redux
+	Improved/retextured by EugeneLoza
+
+Textures
+	CC0 by Nobiax
+
