@@ -28,8 +28,8 @@ uses
   CastleWindow;
 
 const
-  Scale = 10;
-  ScaleY = 5;
+  Scale = 1;
+  ScaleY = 1;
 
 var
   Window: TCastleWindow;

@@ -90,7 +90,7 @@ end;
 procedure TPlayer.ResetCamera;
 begin
   Camera.Position := Vector3(Next.X * 2 * Scale,
-    Camera.PreferredHeight - 1 * ScaleY, Next.Y * 2 * Scale);
+    Camera.PreferredHeight, Next.Y * 2 * Scale);
   Camera.Direction := Face[Next.Dir];
 end;
 
@@ -114,7 +114,7 @@ begin
       cy := Next.Y * Phase + Last.Y * (1 - Phase);
       cface := Face[Next.Dir] * Phase + Face[Last.Dir] * (1 - Phase);
       Camera.Position := Vector3(cx * 2 * Scale,
-        Camera.PreferredHeight - 1 * ScaleY, cy * 2 * Scale);
+        Camera.PreferredHeight, cy * 2 * Scale);
       Camera.Direction := cface;
     end
     else begin

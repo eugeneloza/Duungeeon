@@ -85,7 +85,7 @@ end;
 
 procedure TGui.Draw;
 begin
-  MapImage.Draw;
+  //MapImage.Draw;
 end;
 
 constructor TGui.Create(aOwner: TComponent);

@@ -128,9 +128,13 @@ begin
     FdChildren.Add(aContent.FdChildren[i]);
 end;
 
+
+type
+  TTileList = specialize TObjectList<TX3DRootNode>;
+
 function TLocationGenerator.MakeRoot: TX3DRootNode;
 var
-  Tiles: array of TX3DRootNode;
+  Wall, Pass, Border: TTileList;
 
   Translation: TTransformNode;
   Background: TBackgroundNode;
@@ -138,16 +142,37 @@ var
 begin
   Result := TX3DRootNode.Create;
 
-  SetLength(Tiles, 2);
-  Tiles[0] := LoadBlenderX3D(ApplicationData('tiles/Pass.x3d'));
-  Tiles[1] := LoadBlenderX3D(ApplicationData('tiles/Box.x3d'));
+  Wall := TTileList.Create(true);
+  Pass := TTileList.Create(true);
+  Border := TTileList.Create(true);
+
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard01.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard02.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard03.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard04.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard05.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard06.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard07.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard08.x3d')));
+  Wall.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard09.x3d')));
+  Border.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard_border.x3d')));
+  Pass.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard_pass01.x3d')));
+  Pass.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard_pass02.x3d')));
+  Pass.Add(LoadBlenderX3D(ApplicationData('tiles/graveyard/graveyard_pass03.x3d')));
 
   {build the scene}
 
   for ix := 0 to MapSizeX-1 do
     for iy := 0 to MapSizeY-1 do begin
       Translation := TTransformNode.Create;
-      Translation.AddContent(Tiles[Map[ix, iy]]);
+      if (ix = 0) or (iy = 0) or (ix = MapSizeX - 1) or (iy = MapSizeY - 1) then
+        Translation.AddContent(Border[Rnd.Random(Border.Count)])
+      else
+      if Map[ix, iy] = 0 then
+        Translation.AddContent(Pass[Rnd.Random(Pass.Count)])
+      else
+        Translation.AddContent(Wall[Rnd.Random(Wall.Count)]);
+
       Translation.Translation := Vector3(ix * 2 * Scale, 0, iy * 2 * Scale);
       Translation.Scale := Vector3(Scale, ScaleY, Scale);
       Result.FdChildren.Add(Translation);
@@ -163,8 +188,9 @@ begin
   Background.FdTopUrl.Items.Add(ApplicationData('skybox/bkg2_top3_CC0_by_StumpyStrust.tga'));
   Result.FdChildren.Add(Background);
 
-  Tiles[0].Free;
-  Tiles[1].Free;
+  Wall.Free;
+  Pass.Free;
+  Border.Free;
 end;
 
 function TLocationGenerator.MakeMinimap: TRGBAlphaImage;
