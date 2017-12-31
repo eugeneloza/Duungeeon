@@ -33,7 +33,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard);
+  TLocation = (LGraveyard, LMausoleum);
 
 type
   TMapItem = integer;
@@ -46,11 +46,13 @@ type
   strict private {map generation algorithms}
 
     procedure MakeRandomMap;
+    procedure MakeBoxMap;
   strict private {map generation tools}
     FloodMap: TMap;
     CurrentLocation: TLocation;
     Rnd: TCastleRandom;
     procedure ClearFloodFill;
+    procedure ClearMap;
     function SafeFloodMap(const ax, ay: integer): TMapItem;
     function isInaccessible(const ax, ay: integer): boolean;
     function isAccessible(const ax, ay: integer): boolean;
@@ -183,6 +185,15 @@ begin
     Map[MapSizeX - 1, iy] := 1;
   end;
 
+end;
+
+procedure TLocationGenerator.ClearMap;
+var
+  ix, iy: integer;
+begin
+  for ix := 0 to MapSizeX - 1 do
+    for iy := 0 to MapSizeY - 1 do
+      Map[ix, iy] := 0;
 end;
 
 procedure TLocationGenerator.ClearFloodFill;
@@ -360,7 +371,7 @@ begin
 
   for ix := 1 to MapSizeX - 2 do
     for iy := 1 to MapSizeY - 2 do
-      if (Rnd.Random < 0.3) then
+      if (Rnd.Random < 0.4) then
         Map[ix, iy] := 0
       else
         Map[ix, iy] := 1;
@@ -370,7 +381,87 @@ begin
 
   ProcessWallBlocks;
   ProcessWallDeadends;
+  OpenInaccessible;
+end;
 
+procedure TLocationGenerator.MakeBoxMap;
+const
+  BlockChance = 0.5;
+var
+  ix, iy: integer;
+  r, r2, rmax, BlockCount: integer;
+begin
+  ClearMap;
+  MakeOuterWalls;
+
+  //make map borders
+  if MapSizeX < MapSizey then
+    rmax := MapSizeX div 4 - 1
+  else
+    rmax := MapSizeY div 4 - 1;
+
+  //make boxes
+  for r := 1 to rmax do begin
+    r2 := r * 2;
+    for ix := r2 to MapSizeX - 1 - r2 do begin
+      Map[ix, r2] := 1;
+      Map[ix, MapSizeY - 1 - r2] := 1;
+    end;
+    for iy := r2 to MapSizeY - 1 - r2 do begin
+      Map[r2, iy] := 1;
+      Map[MapSizeX - 1 - r2, iy] := 1;
+    end;
+  end;
+  //block passages
+  for r := 1 to rmax do begin
+    r2 := r * 2;
+    BlockCount := 0;
+    for ix := r2+1 to MapSizeX - 2 - r2 do
+      if Rnd.Random < BlockChance then begin
+        if BlockCount = 0 then begin
+          Map[ix, r2 - 1] := 1;
+          BlockCount := 2;
+        end
+        else
+          Dec(BlockCount);
+      end;
+    BlockCount := 0;
+    for ix := r2+1 to MapSizeX - 2 - r2 do
+      if Rnd.Random < BlockChance then begin
+        if BlockCount = 0 then begin
+          Map[ix, MapSizeY - r2] := 1;
+          BlockCount := 2;
+        end
+        else
+          Dec(BlockCount);
+      end;
+    BlockCount := 0;
+    for iy := r2+1 to MapSizeY - 2 - r2 do
+      if Rnd.Random < BlockChance then begin
+        if BlockCount = 0 then begin
+          Map[r2 - 1, iy] := 1;
+          BlockCount := 2;
+        end
+        else
+          Dec(BlockCount);
+      end;
+    BlockCount := 0;
+    for iy := r2+1 to MapSizeY - 2 - r2 do
+      if Rnd.Random < BlockChance then begin
+        if BlockCount = 0 then begin
+          Map[MapSizeX - r2, iy] := 1;
+          BlockCount := 2;
+        end
+        else
+          Dec(BlockCount);
+      end;
+  end;
+
+  //make space for player start location
+  Map[EntranceX, EntranceY] := 0;
+
+  ProcessWallBlocks;
+  //ProcessWallDeadends;
   OpenInaccessible;
 end;
 
@@ -385,6 +476,7 @@ begin
   {do the core map generation}
   case CurrentLocation of
     LGraveyard: MakeRandomMap;
+    LMausoleum: MakeBoxMap;
   end;
 
   {build distance map}
