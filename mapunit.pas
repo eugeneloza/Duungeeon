@@ -34,7 +34,7 @@ const
 const Inaccessible = -1;
 
 type
-  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky, LMaze, LTwisty, LDeepForest);
+  TLocation = (LGraveyard, LMausoleum, LForest, LCatacomb, LCheckers, LBlocky, LMaze, LTwisty, LDeepForest, LZebranky);
 
 type
   TMapItem = integer;
@@ -52,6 +52,7 @@ type
     procedure MakeRotorMap;
     procedure MakeCheckersMap;
     procedure MakeDenseCheckersMap;
+    procedure MakeZebrankyMap;
     procedure MakeTwistyMap;
     procedure MakeBlockyMap;
     procedure MakePixelgrowMap;
@@ -724,6 +725,23 @@ begin
   OpenInaccessible;
 end;
 
+procedure TLocationGenerator.MakeZebrankyMap;
+var
+  ix, iy: integer;
+begin
+  ClearMap(0);
+  for ix := 1 to MapSizeX - 2 do
+    for iy := 1 to MapSizeY - 2 do
+      if (not Odd(ix)) or (Rnd.Random < 0.2) then
+        Map[ix, iy] := 1
+      else
+        Map[ix, iy] := 0;
+  MakeOuterWalls;
+  Map[EntranceX, EntranceY] := 0;
+  ProcessWallBlocks;
+  OpenInaccessible;
+end;
+
 procedure TLocationGenerator.MakeTwistyMap;
 const
   OpenChance = 0.4;
@@ -917,6 +935,7 @@ begin
     LTwisty: MakeTwistyMap;
     //LCave: MakeSineMap;
     LDeepForest: MakePixelgrowMap;
+    LZebranky: MakeZebrankyMap;
   end;
 
   {build distance map}

@@ -53,7 +53,7 @@ begin
   Location := TLocationGenerator.Create;
   Location.EntranceX := 1;
   Location.EntranceY := MapSizeY div 2;
-  Location.MakeMap(LGraveyard);
+  Location.MakeMap(LZebranky);
   GenerationNode := Location.MakeRoot;
   Minimap := Location.MakeMinimap;
   Player.Teleport(Location.EntranceX, Location.EntranceY, South);
@@ -78,6 +78,7 @@ begin
   GenerationNode.FdChildren.Add(Viewport);
 
   Scene.Load(GenerationNode, true);
+  //Scene.DistanceCulling := 30;
 
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
