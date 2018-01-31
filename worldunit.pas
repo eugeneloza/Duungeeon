@@ -56,7 +56,7 @@ begin
   Location.MakeMap(LZebranky);
   GenerationNode := Location.MakeRoot;
   Minimap := Location.MakeMinimap;
-  Player.Teleport(Location.EntranceX, Location.EntranceY, South);
+  Player.Teleport(Location.EntranceX, Location.EntranceY, drSouth);
   Location.Free;
 
   //create light that follows the player
