@@ -31,6 +31,7 @@ var
   Scene: TCastleScene;
 
 procedure PrepareScene;
+
 implementation
 
 uses

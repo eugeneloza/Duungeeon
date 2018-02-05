@@ -17,45 +17,51 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.}
 
 (* Draws GUI *)
 
-unit GuiUnit;
+unit GUIUnit;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  CastleGlImages, CastleImages,
-  Classes, SysUtils;
+  CastleGLImages, CastleImages,
+  Classes, SysUtils, CastleWindow, CastleScene, CastleControls, CastleLog,
+  CastleFilesUtils, CastleKeysMouse;
 
 type
   TMapImage = class(TObject)
   strict private
-    GLMapImage: TGlImage;
+    GLMapImage: TGLImage;
   public
-
     procedure Update;
     procedure Draw;
     destructor Destroy; override;
   end;
 
 type
-  TGui = class (TComponent)
+
+  { TGUI }
+
+  TGUI = class (TComponent)
   public
     MapImage: TMapImage;
-
     procedure Draw;
-
+    procedure Resize;
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
 var
-  GUI: TGui;
+  GUI: TGUI;
 
 implementation
 
 uses
-  MapUnit;
+  WindowUnit, MapUnit;
+
+var
+  ImageWithBorders: array [0..3] of TGLImage;
+  Left: Integer;
 
 procedure TMapImage.Draw;
 begin
@@ -78,23 +84,36 @@ end;
 
 destructor TMapImage.Destroy;
 begin
-  FreeAndNil(GlMapImage);
+  FreeAndNil(GLMapImage);
   FreeAndNil(Minimap); //temp
   inherited Destroy;
 end;
 
-procedure TGui.Draw;
+procedure TGUI.Draw;
+var
+  N: Integer;
 begin
   //MapImage.Draw;
+  for N := 0 to 3 do
+    ImageWithBorders[N].Draw(Left + (N * (128 + 8)), 8);
 end;
 
-constructor TGui.Create(aOwner: TComponent);
+procedure TGUI.Resize;
+begin
+  Left := (Window.Width div 2) - ((128 * 2) + 8 + (8 div 2));
+end;
+
+constructor TGUI.Create(aOwner: TComponent);
+var
+  N: Integer;
 begin
   inherited Create(aOwner);
   MapImage := TMapImage.Create;
+  for N := 0 to 3 do
+    ImageWithBorders[N] := TGLImage.Create(ApplicationData('gui\box_with_borders.png'));
 end;
 
-destructor TGui.Destroy;
+destructor TGUI.Destroy;
 begin
   MapImage.Free;
   inherited Destroy;

@@ -30,6 +30,11 @@ begin
   Player.Manage;
 end;
 
+procedure DoResize(Container: TUIContainer);
+begin
+  GUI.Resize;
+end;
+
 procedure DoRender(Container: TUIContainer);
 begin
   GUI.Draw;
@@ -66,6 +71,7 @@ begin
   Window.OnPress := @DoPress;
   Window.OnBeforeRender := @DoManage;
   Window.OnRender := @DoRender;
+  Window.OnResize := @DoResize;
   Application.MainWindow := Window;
   GUI := TGui.Create(Window);
   PrepareScene;

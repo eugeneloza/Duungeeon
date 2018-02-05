@@ -24,7 +24,7 @@ unit PlayerUnit;
 interface
 
 uses
-  CastleVectors, CastleCameras, CastleTimeUtils;
+  CastleVectors, CastleCameras, CastleTimeUtils, EntityUnit;
 
 type
   TDir = (drSouth, drWest, drNorth, drEast);
@@ -38,13 +38,13 @@ type
     X, Y: Integer;
   end;
 
-  TMove = (mvWalkForward, mvBackPedal, mvStepLeft, mvStepRight, mvRotateClockwise, mvRotateCounterclockwise);
+  TMove = (mvWalkForward, mvBackPedal, mvStepLeft, mvStepRight, mvRotateClockwise, mvRotateCounterClockwise);
 
 type
 
   { TPlayer }
 
-  TPlayer = class(TObject)
+  TPlayer = class(TParty)
   strict private
     MoveStart: TTimerResult;
     IsMoving: Boolean;
@@ -223,7 +223,8 @@ end;
 
 constructor TPlayer.Create;
 begin
-  // inherited <-------- nothing to inherit
+  inherited Create;
+
   Next.Dir := drSouth;
   Next.X := 30 div 2;
   Next.Y := 30 div 2;
