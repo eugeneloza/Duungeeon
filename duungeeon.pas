@@ -30,6 +30,11 @@ begin
   Player.Manage;
 end;
 
+procedure DoResize(Container: TUIContainer);
+begin
+  GUI.Resize;
+end;
+
 procedure DoRender(Container: TUIContainer);
 begin
   GUI.Draw;
@@ -40,19 +45,21 @@ begin
   if Event.EventType = itKey then
   begin
     case Event.Key of
-      k_W:
+      K_1 .. K_4:
+        Player.Active := Ord(Event.Key) - Ord(K_1);
+      K_W:
         Player.Move(mvWalkForward);
-      k_S:
+      K_S:
         Player.Move(mvBackPedal);
-      k_Q:
+      K_Q:
         Player.Move(mvStepLeft);
-      k_E:
+      K_E:
         Player.Move(mvStepRight);
-      k_A:
+      K_A:
         Player.Move(mvRotateCounterClockwise);
-      k_D:
+      K_D:
         Player.Move(mvRotateClockwise);
-      k_P:
+      K_P:
         Window.SaveScreen('duungeeon.png');
     end;
   end;
@@ -66,6 +73,7 @@ begin
   Window.OnPress := @DoPress;
   Window.OnBeforeRender := @DoManage;
   Window.OnRender := @DoRender;
+  Window.OnResize := @DoResize;
   Application.MainWindow := Window;
   GUI := TGui.Create(Window);
   PrepareScene;

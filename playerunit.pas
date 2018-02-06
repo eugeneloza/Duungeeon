@@ -24,7 +24,7 @@ unit PlayerUnit;
 interface
 
 uses
-  CastleVectors, CastleCameras, CastleTimeUtils;
+  CastleVectors, CastleCameras, CastleTimeUtils, EntityUnit;
 
 type
   TDir = (drSouth, drWest, drNorth, drEast);
@@ -38,13 +38,13 @@ type
     X, Y: Integer;
   end;
 
-  TMove = (mvWalkForward, mvBackPedal, mvStepLeft, mvStepRight, mvRotateClockwise, mvRotateCounterclockwise);
+  TMove = (mvWalkForward, mvBackPedal, mvStepLeft, mvStepRight, mvRotateClockwise, mvRotateCounterClockwise);
 
 type
 
   { TPlayer }
 
-  TPlayer = class(TObject)
+  TPlayer = class(TParty)
   strict private
     MoveStart: TTimerResult;
     IsMoving: Boolean;
@@ -69,7 +69,7 @@ var
 implementation
 
 uses
-  SysUtils, WindowUnit, MapUnit;
+  Math, SysUtils, WindowUnit, MapUnit;
 
 procedure TPlayer.ForceEndTurn;
 begin
@@ -222,8 +222,11 @@ begin
 end;
 
 constructor TPlayer.Create;
+var
+  N: Integer;
 begin
-  // inherited <-------- nothing to inherit
+  inherited Create;
+
   Next.Dir := drSouth;
   Next.X := 30 div 2;
   Next.Y := 30 div 2;
@@ -234,6 +237,10 @@ begin
   Camera.FallingEffect := false;
   Camera.Input := [];
   Camera.Gravity := false;
+
+  // test
+  for N := 0 to 3 do
+    Self.AddHero(N, N + 1);
 end;
 
 destructor TPlayer.Destroy;
