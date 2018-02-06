@@ -69,7 +69,7 @@ var
 implementation
 
 uses
-  SysUtils, WindowUnit, MapUnit;
+  Math, SysUtils, WindowUnit, MapUnit;
 
 procedure TPlayer.ForceEndTurn;
 begin
@@ -222,6 +222,8 @@ begin
 end;
 
 constructor TPlayer.Create;
+var
+  N: Integer;
 begin
   inherited Create;
 
@@ -235,6 +237,10 @@ begin
   Camera.FallingEffect := false;
   Camera.Input := [];
   Camera.Gravity := false;
+
+  // test
+  for N := 0 to 3 do
+    Self.AddHero(N, N + 1);
 end;
 
 destructor TPlayer.Destroy;

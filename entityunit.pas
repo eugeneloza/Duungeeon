@@ -1,21 +1,21 @@
-{Copyright (C) 2012-2017 Yevhen Loza
+{ Copyright (C) 2012-2017 Yevhen Loza
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.}
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>. }
 
-{---------------------------------------------------------------------------}
+{ --------------------------------------------------------------------------- }
 
-(* Entity *)
+(* Entities *)
 
 unit EntityUnit;
 
@@ -26,12 +26,12 @@ interface
 uses Classes, SysUtils;
 
 type
-  TStatEnum = (stHP);
+  TStatEnum = (stHP, stMP);
 
 type
   TStateEnum = (stAlive, stDead);
 
-{ TStat }
+  { TStat }
 
 type
   TStat = class(TObject)
@@ -101,18 +101,21 @@ type
     property Name: string read FName write FName;
   end;
 
-  {TParty}
+  { TParty }
 
 type
   TParty = class(TObject)
   strict private
-    FHero: array [1..4] of THero;
+    FActive: Integer;
+    FHero: array [0 .. 3] of THero;
     function GetHero(N: Integer): THero;
     procedure SetHero(N: Integer; Value: THero);
   public
     constructor Create;
     destructor Destroy; override;
+    property Active: Integer read FActive write FActive;
     property Hero[N: Integer]: THero read GetHero write SetHero;
+    procedure AddHero(N: Integer; const HeroID: Integer);
     function Damage(N: Integer; const Value: Integer): Boolean;
     procedure Cure(N: Integer; const Value: Integer);
   end;
@@ -131,8 +134,10 @@ end;
 
 procedure TStat.Dec(const Value: Integer);
 begin
-  if ((FCur > 0) and (Value > 0)) then SetCur(GetCur - Value);
-  if (FCur < 0) then FCur := 0;
+  if ((FCur > 0) and (Value > 0)) then
+    SetCur(GetCur - Value);
+  if (FCur < 0) then
+    FCur := 0;
 end;
 
 function TStat.GetPrm: Integer;
@@ -163,8 +168,10 @@ end;
 
 procedure TStat.Inc(const Value: Integer);
 begin
-  if ((FCur < FMax) and (Value > 0)) then SetCur(GetCur + Value);
-  if (FCur > FMax) then FCur := FMax;
+  if ((FCur < FMax) and (Value > 0)) then
+    SetCur(GetCur + Value);
+  if (FCur > FMax) then
+    FCur := FMax;
 end;
 
 function TStat.IsMax: Boolean;
@@ -190,16 +197,20 @@ end;
 
 procedure TStat.SetCur(Value: Integer);
 begin
-  if (Value < 0) then Value := 0;
-  if (Value > Max) then Value := FMax;
+  if (Value < 0) then
+    Value := 0;
+  if (Value > FMax) then
+    Value := FMax;
   FCur := Value;
 end;
 
 procedure TStat.SetMax(Value: Integer);
 begin
-  if (Value < 0) then Value := 0;
+  if (Value < 0) then
+    Value := 0;
   FMax := Value + FPrm + FTmp;
-  if (FCur >= FMax) then ToMax;
+  if (FCur >= FMax) then
+    ToMax;
 end;
 
 procedure TStat.ToMax;
@@ -256,8 +267,6 @@ begin
   FExp := 0;
   FName := '';
   State := stAlive;
-  Stat[stHP].Max := 20;
-  Stat[stHP].ToMax;
 end;
 
 destructor THero.Destroy;
@@ -268,7 +277,8 @@ end;
 function THero.AddExp(const AExp: Integer): Boolean;
 begin
   Result := False;
-  if (AExp <= 0) then Exit;
+  if (AExp <= 0) then
+    Exit;
   Inc(FExp, AExp);
   if (FExp > GetNextLevelExp) then
   begin
@@ -303,15 +313,16 @@ constructor TParty.Create;
 var
   N: Integer;
 begin
-  for N := 1 to 4 do
+  for N := 0 to 3 do
     FHero[N] := THero.Create;
+  FActive := 0;
 end;
 
 destructor TParty.Destroy;
 var
   N: Integer;
 begin
-  for N := 1 to 4 do
+  for N := 0 to 3 do
     FreeAndNil(FHero[N]);
   inherited Destroy;
 end;
@@ -335,5 +346,13 @@ begin
   FHero[N].Stat[stHP].Inc(Value);
 end;
 
-end.
+procedure TParty.AddHero(N: Integer; const HeroID: Integer);
+begin
+  FHero[N].ID := HeroID;
+  FHero[N].Stat[stHP].Max := 100;
+  FHero[N].Stat[stHP].ToMax;
+  FHero[N].Stat[stMP].Max := 50;
+  FHero[N].Stat[stMP].ToMax;
+end;
 
+end.

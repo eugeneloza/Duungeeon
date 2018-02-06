@@ -131,7 +131,7 @@
       <Unit7>
         <Filename Value="guiunit.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="GuiUnit"/>
+        <UnitName Value="GUIUnit"/>
       </Unit7>
       <Unit8>
         <Filename Value="entityunit.pas"/>
